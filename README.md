@@ -23,6 +23,12 @@ these deployments are actually rated.
 
 No dependencies, Python 3.9+.
 
+Use `uvx` or `pipx` — both provision their own build toolchain. A very old
+`pip` (macOS ships 21.x with the system Python) cannot read this project's
+metadata and will silently build a wheel named `UNKNOWN-0.0.0` that installs
+without error and gives you no command. If you install with plain `pip`,
+upgrade it first: `python3 -m pip install --upgrade pip`.
+
 ```bash
 uvx --from git+https://github.com/MatijaMiki/agentscan agentscan watch
 ```
