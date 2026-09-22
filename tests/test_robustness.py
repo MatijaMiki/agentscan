@@ -79,7 +79,7 @@ class WatcherInputShapes(unittest.TestCase):
 
     def test_command_as_argv_list(self):
         """Some agents pass argv arrays rather than a shell string."""
-        hits, _ = watch.evaluate("Bash", {"command": ["rm", "-rf", "/tmp/x"]})
+        hits, _ = watch.evaluate("Bash", {"command": ["rm", "-rf", "~/archive"]})
         self.assertTrue(hits)
 
     def test_command_of_unexpected_type_does_not_raise(self):

@@ -74,6 +74,85 @@ def _context(text, match, width=70):
     return ("…" if start > 0 else "") + snippet + ("…" if end < len(text) else "")
 
 
+# Paths whose entire purpose is to be thrown away.
+_EPHEMERAL_BASENAMES = {
+    "build", "dist", "target", "out", "node_modules", "__pycache__",
+    ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache",
+    ".next", ".nuxt", ".turbo", ".parcel-cache", ".cache", "coverage",
+    ".gradle", "vendor", ".terraform", "tmp", ".tox", ".eggs",
+}
+_TMP_PREFIXES = ("/tmp/", "/private/tmp/", "/var/folders/",
+                 "/private/var/folders/", "/var/tmp/")
+# Generated directories whose name varies but whose suffix does not.
+_EPHEMERAL_SUFFIXES = (".egg-info", ".dist-info", ".egg-link")
+
+# Deleting one of these is not routine under any circumstances.
+_CATASTROPHIC = {"/", "~", "$HOME", "${HOME}", "~/", "/*", "$HOME/", "/Users",
+                 "/home", "/usr", "/etc", "/var", "/System", "/Applications"}
+
+_RM_ARGS = re.compile(r"\brm\s+(?:-[A-Za-z]+\s+)*([^|;&\n]+)")
+
+
+_REDIRECT = re.compile(r"^\d*(?:>>?|<|&>)")
+
+
+def _rm_targets(text):
+    """Extract what a deletion was actually pointed at.
+
+    Skips flags and shell redirections: `2>/dev/null` trailing an `rm` is not
+    a path being removed, and treating it as one made every quietened
+    cleanup look like a deletion of something real.
+    """
+    targets = []
+    for m in _RM_ARGS.finditer(text):
+        tokens = m.group(1).split()
+        skip_next = False
+        for raw in tokens:
+            if skip_next:
+                skip_next = False
+                continue
+            if raw.startswith("-"):
+                continue
+            if _REDIRECT.match(raw):
+                if _REDIRECT.match(raw).end() == len(raw):
+                    skip_next = True      # "> file" written with a space
+                continue
+            targets.append(raw.strip("\"\'"))
+    return targets
+
+
+def _is_ephemeral(target):
+    if not target:
+        return False
+    if target.startswith(_TMP_PREFIXES) or target in ("/tmp", "/private/tmp"):
+        return True
+    base = target.rstrip("/").split("/")[-1]
+    return base in _EPHEMERAL_BASENAMES or base.endswith(_EPHEMERAL_SUFFIXES)
+
+
+def _normalise_target(t):
+    """Trim a trailing slash without erasing the root itself -- "/".rstrip("/")
+    is the empty string, which silently loses the one target that matters
+    most."""
+    return t if len(t) <= 1 else t.rstrip("/")
+
+
+def _refine_deletion(text, severity):
+    """Re-rank a deletion by what it was aimed at, not just the verb used."""
+    targets = _rm_targets(text)
+    if not targets:
+        return severity
+    if any(_normalise_target(t) in _CATASTROPHIC or t in ("/*", "~/*", "$HOME/*")
+           for t in targets):
+        return CRITICAL
+    if all(_is_ephemeral(t) for t in targets):
+        return None          # routine build/temp cleanup: not worth surfacing
+    return severity
+
+
+REFINERS = {"fs.destructive": _refine_deletion}
+
+
 RULES = [
     Rule("cred.read", CRITICAL,
          "Credential material accessed",
@@ -156,7 +235,10 @@ RULES = [
 # An agent writing a script that contains "rm -rf" has not deleted anything;
 # running it is a separate tool call that this watcher will see on its own.
 _CONTENT_KEYS = {"content", "new_string", "old_string", "body", "text",
-                 "file_text", "patch", "diff", "prompt"}
+                 "file_text", "patch", "diff", "prompt",
+                 # Prose the agent wrote for a human to read. A description
+                 # that says "clean up the rm -rf targets" is not a deletion.
+                 "description", "explanation", "reason", "thought", "title"}
 
 _HEREDOC = re.compile(
     r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1.*?^\2\s*$",
@@ -320,10 +402,17 @@ def evaluate(tool_name, tool_input):
         if searching and rule.suppress_on_search:
             continue
         m = rule.match(text)
-        if m:
-            hits.append({"rule": rule.id, "severity": rule.severity,
-                         "title": rule.title, "why": rule.why,
-                         "evidence": _context(text, m)})
+        if not m:
+            continue
+        severity = rule.severity
+        refine = REFINERS.get(rule.id)
+        if refine:
+            severity = refine(text, severity)
+            if severity is None:
+                continue
+        hits.append({"rule": rule.id, "severity": severity,
+                     "title": rule.title, "why": rule.why,
+                     "evidence": _context(text, m)})
     return hits, text
 
 
