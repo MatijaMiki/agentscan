@@ -10,3 +10,9 @@ venv/
 controls.json
 out.html
 scan-*.html
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
