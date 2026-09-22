@@ -392,7 +392,7 @@ def render(records, scanned, days):
     colour = {CRITICAL: RED, HIGH: YEL, MEDIUM: CYA}
     L = ["", BOLD("  agentscan watch  ") + DIM("· local agent flight recorder"),
          DIM("  " + "-" * 62),
-         "  %d transcript(s) over %d days" % (scanned, days), ""]
+         "  %d source(s) over %d days" % (scanned, days), ""]
     if not records:
         L += ["  " + GRN("Nothing flagged."),
               DIM("  Every tool call was read, none tripped a rule."), ""]
@@ -415,3 +415,254 @@ def render(records, scanned, days):
     L += [DIM("  " + "-" * 62),
           DIM("  Read locally. Nothing was transmitted."), ""]
     return "\n".join(L)
+
+
+# --------------------------------------------------------------------------
+# Source: OpenClaw
+#
+# OpenClaw keeps per-agent transcripts in SQLite at
+#   $OPENCLAW_STATE_DIR/agents/<agentId>/agent/openclaw-agent.sqlite
+# documented only as "append-only, tree-structured (id + parentId)" holding
+# conversation, tool calls and compaction summaries. The table and column
+# names are not documented, and pinning them from a guess would break on the
+# next release. So the schema is discovered at runtime and tool calls are
+# recognised by shape rather than by column name.
+#
+# The database is opened read-only. It belongs to a running agent.
+# --------------------------------------------------------------------------
+
+import sqlite3
+
+OPENCLAW_STATE = os.environ.get("OPENCLAW_STATE_DIR",
+                                os.path.expanduser("~/.openclaw"))
+
+# Keys that carry a tool's name, and keys that carry its arguments, across the
+# shapes in circulation (Anthropic tool_use, OpenAI function calls, and the
+# various framework wrappers).
+_NAME_KEYS = ("name", "toolName", "tool_name", "tool", "function_name")
+_ARG_KEYS = ("input", "arguments", "args", "params", "parameters", "toolInput")
+
+
+def openclaw_databases(state_dir=None):
+    root = state_dir or OPENCLAW_STATE
+    return sorted(glob.glob(os.path.join(
+        root, "agents", "*", "agent", "openclaw-agent.sqlite")))
+
+
+def _open_readonly(path):
+    """Read-only, and resilient to the agent holding a WAL lock."""
+    try:
+        conn = sqlite3.connect("file:%s?mode=ro" % path, uri=True, timeout=5)
+        conn.execute("SELECT 1 FROM sqlite_master LIMIT 1")
+        return conn, None
+    except sqlite3.Error:
+        pass
+    # Live WAL: work on a copy rather than touching the agent's database.
+    import shutil
+    import tempfile
+    tmp = tempfile.mkdtemp(prefix="agentscan-")
+    copy = os.path.join(tmp, os.path.basename(path))
+    try:
+        shutil.copy2(path, copy)
+        for suffix in ("-wal", "-shm"):
+            if os.path.exists(path + suffix):
+                shutil.copy2(path + suffix, copy + suffix)
+        return sqlite3.connect("file:%s?mode=ro" % copy, uri=True), tmp
+    except (OSError, sqlite3.Error):
+        return None, tmp
+
+
+_TIME_COL = re.compile(r"^(created_?at|timestamp|ts|time|updated_?at|date)$", re.I)
+
+
+def _time_columns(conn, table):
+    return [r[1] for r in conn.execute('PRAGMA table_info("%s")'
+                                       % table.replace('"', ''))
+            if _TIME_COL.match(r[1] or "")]
+
+
+def _as_iso(value):
+    """Rows carry epoch seconds, epoch millis or an ISO string depending on
+    the writer. Normalise what we can and drop what we cannot."""
+    if value in (None, ""):
+        return None
+    if isinstance(value, str):
+        return value[:19] if value[:4].isdigit() else None
+    try:
+        n = float(value)
+    except (TypeError, ValueError):
+        return None
+    if n > 1e11:          # milliseconds
+        n /= 1000.0
+    if n < 1e8:           # not a plausible epoch
+        return None
+    import datetime as _dt
+    return _dt.datetime.fromtimestamp(n, _dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def _text_columns(conn, table):
+    cols = []
+    for row in conn.execute('PRAGMA table_info("%s")' % table.replace('"', '')):
+        name, ctype = row[1], (row[2] or "").upper()
+        if ctype in ("", "TEXT", "BLOB", "JSON") or "CHAR" in ctype:
+            cols.append(name)
+    return cols
+
+
+def _find_tool_calls(obj, depth=0):
+    """Recognise tool calls by shape, anywhere in a decoded JSON structure.
+
+    Deduplicated: an OpenAI-style {"function": {...}} matches both the explicit
+    branch and the generic walk that recurses into it.
+    """
+    found = _find_tool_calls_raw(obj, depth)
+    out, seen = [], set()
+    for name, args in found:
+        key = (name, json.dumps(args, sort_keys=True, default=str)[:512])
+        if key not in seen:
+            seen.add(key)
+            out.append((name, args))
+    return out
+
+
+def _find_tool_calls_raw(obj, depth=0):
+    found = []
+    if depth > 8:
+        return found
+    if isinstance(obj, list):
+        for item in obj:
+            found.extend(_find_tool_calls_raw(item, depth + 1))
+        return found
+    if not isinstance(obj, dict):
+        return found
+
+    # OpenAI-style: {"function": {"name": ..., "arguments": "<json string>"}}
+    fn = obj.get("function")
+    if isinstance(fn, dict) and any(k in fn for k in _NAME_KEYS):
+        args = fn.get("arguments")
+        if isinstance(args, str):
+            try:
+                args = json.loads(args)
+            except ValueError:
+                args = {"_raw": args}
+        found.append((str(next(fn[k] for k in _NAME_KEYS if k in fn)), args or {}))
+
+    name = next((obj[k] for k in _NAME_KEYS if isinstance(obj.get(k), str)), None)
+    args = next((obj[k] for k in _ARG_KEYS if isinstance(obj.get(k), (dict, str))), None)
+    if name and args is not None:
+        if isinstance(args, str):
+            try:
+                args = json.loads(args)
+            except ValueError:
+                args = {"_raw": args}
+        if obj.get("type") in (None, "tool_use", "tool_call", "function_call", "tool"):
+            found.append((name, args))
+
+    for value in obj.values():
+        if isinstance(value, (dict, list)):
+            found.extend(_find_tool_calls_raw(value, depth + 1))
+        elif isinstance(value, str) and value[:1] in ("{", "["):
+            try:
+                found.extend(_find_tool_calls_raw(json.loads(value), depth + 1))
+            except ValueError:
+                pass
+    return found
+
+
+def scan_openclaw_db(path, source="openclaw"):
+    conn, tmpdir = _open_readonly(path)
+    if conn is None:
+        return []
+
+    agent_id = path.split(os.sep + "agents" + os.sep)[-1].split(os.sep)[0] \
+        if os.sep + "agents" + os.sep in path else "openclaw"
+    records, seen = [], set()
+
+    try:
+        tables = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name NOT LIKE 'sqlite_%'")]
+        for table in tables:
+            cols = _text_columns(conn, table)
+            if not cols:
+                continue
+            tcols = _time_columns(conn, table)
+            quoted = ", ".join('"%s"' % c.replace('"', '') for c in cols + tcols)
+            try:
+                rows = conn.execute('SELECT %s FROM "%s"'
+                                    % (quoted, table.replace('"', '')))
+            except sqlite3.Error:
+                continue
+            n_text = len(cols)
+            for row in rows:
+                stamp = next((_as_iso(v) for v in row[n_text:]
+                              if _as_iso(v)), None)
+                for cell in row[:n_text]:
+                    if not isinstance(cell, (str, bytes)):
+                        continue
+                    if isinstance(cell, bytes):
+                        try:
+                            cell = cell.decode("utf-8")
+                        except UnicodeDecodeError:
+                            continue
+                    if cell[:1] not in ("{", "["):
+                        continue
+                    try:
+                        payload = json.loads(cell)
+                    except ValueError:
+                        continue
+                    for tool, tool_input in _find_tool_calls(payload):
+                        if not isinstance(tool_input, dict):
+                            tool_input = {"_value": tool_input}
+                        hits, text = evaluate(tool, tool_input)
+                        if not hits:
+                            continue
+                        key = (tool, _hash(text))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        records.append({
+                            "source": source,
+                            "session": agent_id,
+                            "project": table,
+                            "timestamp": stamp,
+                            "tool_name": tool,
+                            "tool_call_id": None,
+                            "payload_hash": _hash(text),
+                            "severity": max(
+                                hits, key=lambda h: ["medium", "high", "critical"]
+                                .index(h["severity"]))["severity"],
+                            "hits": hits,
+                        })
+    finally:
+        conn.close()
+        if tmpdir:
+            import shutil
+            shutil.rmtree(tmpdir, ignore_errors=True)
+    return records
+
+
+def scan_openclaw(state_dir=None):
+    records = []
+    dbs = openclaw_databases(state_dir)
+    for db in dbs:
+        records.extend(scan_openclaw_db(db))
+    return records, len(dbs)
+
+
+SOURCES = ("claude-code", "openclaw")
+
+
+def scan_sources(sources=SOURCES, root=None, state_dir=None, since_days=None):
+    """Scan every requested local agent source into one record stream."""
+    records, scanned = [], 0
+    if "claude-code" in sources:
+        recs, n = scan_all(root=root or CLAUDE_PROJECTS, since_days=since_days)
+        records += recs
+        scanned += n
+    if "openclaw" in sources:
+        recs, n = scan_openclaw(state_dir=state_dir)
+        records += recs
+        scanned += n
+    records.sort(key=lambda r: r.get("timestamp") or "", reverse=True)
+    return records, scanned

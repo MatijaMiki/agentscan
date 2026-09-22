@@ -91,11 +91,17 @@ def main(argv=None):
     p.add_argument("--days", type=int, default=30,
                    help="watch: how far back to read local agent history")
     p.add_argument("--root", metavar="PATH", default=watch_mod.CLAUDE_PROJECTS,
-                   help="watch: agent transcript directory")
+                   help="watch: Claude Code transcript directory")
+    p.add_argument("--state-dir", metavar="PATH",
+                   help="watch: OpenClaw state directory (default ~/.openclaw)")
+    p.add_argument("--source", action="append", choices=list(watch_mod.SOURCES),
+                   help="watch: limit to a source (repeatable; default all)")
     args = p.parse_args(argv)
 
     if args.command == "watch":
-        records, n = watch_mod.scan_all(root=args.root, since_days=args.days)
+        records, n = watch_mod.scan_sources(
+            sources=args.source or watch_mod.SOURCES,
+            root=args.root, state_dir=args.state_dir, since_days=args.days)
         if args.json:
             print(json.dumps(records, indent=2))
         else:

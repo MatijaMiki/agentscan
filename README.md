@@ -110,9 +110,24 @@ regardless of intent.
 
 ```bash
 python3 -m agentscan.cli watch --days 30
+python3 -m agentscan.cli watch --source openclaw
 ```
 
-Reads Claude Code's local JSONL transcripts. Rules cover credential access,
+Sources:
+
+| Source | Location | Format |
+|---|---|---|
+| Claude Code | `~/.claude/projects/*/*.jsonl` | JSONL transcripts |
+| OpenClaw | `$OPENCLAW_STATE_DIR/agents/*/agent/openclaw-agent.sqlite` | SQLite |
+
+OpenClaw's transcript schema is undocumented beyond "append-only,
+tree-structured", so the adapter **discovers the schema at runtime** and
+recognises tool calls by shape (Anthropic `tool_use`, OpenAI function calls,
+and the common wrapper key names) rather than pinning table and column names
+that would break on the next release. The database is opened read-only, and
+falls back to a copy if the running agent holds a WAL lock.
+
+Rules cover credential access,
 secret literals in commands, destructive git, package publishing, recursive
 deletion, cloud destruction, financial API calls, log tampering, and
 exfiltration-shaped pipes.
@@ -153,5 +168,5 @@ python3 -m unittest discover -s tests -v
 - [x] **Usage pulls** — AWS, Stripe, Google, GitHub, with explicit coverage gaps
 - [ ] Static config scan (spend caps, approval gates, kill switch, instrumentation)
 - [ ] Reconstruction test against live traces
-- [x] **Local agent watch** — Claude Code transcripts; OpenClaw / Codex / OTLP next
+- [x] **Local agent watch** — Claude Code + OpenClaw; Codex / OTLP receiver next
 - [ ] Adversarial probe (opt-in, staging only)
