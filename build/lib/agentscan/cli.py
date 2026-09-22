@@ -14,19 +14,11 @@ import json
 import os
 import sys
 
-from .score import scan as _run_scan, ProfileError
+from .score import scan as run_scan
 from .report import render
 from . import introspect
 from . import usage as usage_mod
 from . import watch as watch_mod
-
-
-def run_scan(profile):
-    """Score a profile, turning a malformed one into a message."""
-    try:
-        return _run_scan(profile)
-    except ProfileError as e:
-        raise SystemExit("agentscan: %s" % e)
 
 
 def _load(path):
@@ -125,11 +117,6 @@ def main(argv=None):
     p.add_argument("--source", action="append", choices=list(watch_mod.SOURCES),
                    help="watch: limit to a source (repeatable; default all)")
     args = p.parse_args(argv)
-
-    if args.days is not None and args.days < 1:
-        p.error("--days must be at least 1")
-    if args.window_days is not None and args.window_days < 1:
-        p.error("--window-days must be at least 1")
 
     if args.command == "watch":
         records, n = watch_mod.scan_sources(

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime
 import html
+import json
 
 _STATUS_TONE = {"UNINSURABLE": "bad", "IMPAIRED": "warn", "INSURABLE": "good"}
 _SEV_TONE = {"critical": "bad", "high": "warn", "medium": "info", "low": "muted"}
@@ -237,9 +238,6 @@ manually before this report is relied on for underwriting.
 
 
 def write_html(result, path):
-    try:
-        with open(path, "w") as fh:
-            fh.write(build_html(result))
-    except OSError as e:
-        raise SystemExit("agentscan: cannot write %s (%s)" % (path, e.strerror))
+    with open(path, "w") as fh:
+        fh.write(build_html(result))
     return path

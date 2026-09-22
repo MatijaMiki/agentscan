@@ -284,11 +284,8 @@ def _flatten(obj, depth=0):
         for k, v in obj.items():
             if k in _CONTENT_KEYS:
                 continue
-            if k == "command":
-                if isinstance(v, (list, tuple)):
-                    v = " ".join(str(c) for c in v)
-                if isinstance(v, str):
-                    v = _executable_text(v)
+            if k == "command" and isinstance(v, str):
+                v = _executable_text(v)
             parts.append("%s %s" % (k, _flatten(v, depth + 1)))
         return " ".join(parts)
     return ""
@@ -298,20 +295,10 @@ def _hash(text):
     return hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()[:16]
 
 
-# A command longer than this is a data blob, not something a human wrote.
-# Matching past it costs real time on large transcripts and finds nothing.
-MAX_SCAN_CHARS = 64000
-
-
 def evaluate(tool_name, tool_input):
     """Return the rules a single tool call trips."""
-    text = _flatten(tool_input)[:MAX_SCAN_CHARS]
+    text = _flatten(tool_input)
     command = tool_input.get("command") if isinstance(tool_input, dict) else None
-    if isinstance(command, (list, tuple)):
-        # Some agents pass argv arrays rather than a shell string.
-        command = " ".join(str(c) for c in command)
-    elif not isinstance(command, str):
-        command = None
     command = _executable_text(command) if command else command
     searching = _is_search(command)
 
@@ -582,16 +569,9 @@ def _find_tool_calls_raw(obj, depth=0):
     return found
 
 
-def _warn(message):
-    import sys as _sys
-    print("  warning: %s" % message, file=_sys.stderr)
-
-
 def scan_openclaw_db(path, source="openclaw"):
     conn, tmpdir = _open_readonly(path)
     if conn is None:
-        _warn("could not open %s (permissions, or the agent holds it locked)"
-              % path)
         return []
 
     agent_id = path.split(os.sep + "agents" + os.sep)[-1].split(os.sep)[0] \
@@ -599,15 +579,9 @@ def scan_openclaw_db(path, source="openclaw"):
     records, seen = [], set()
 
     try:
-        try:
-            tables = [r[0] for r in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' "
-                "AND name NOT LIKE 'sqlite_%'")]
-        except sqlite3.Error as e:
-            # Not a database, encrypted, or truncated mid-write. One bad file
-            # must not take the rest of the scan down with it.
-            _warn("cannot read %s (%s)" % (path, e))
-            return []
+        tables = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name NOT LIKE 'sqlite_%'")]
         for table in tables:
             cols = _text_columns(conn, table)
             if not cols:

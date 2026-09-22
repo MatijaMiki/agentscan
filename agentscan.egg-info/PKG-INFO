@@ -1,3 +1,29 @@
+Metadata-Version: 2.4
+Name: agentscan
+Version: 0.1.0
+Summary: Flight recorder and authority scanner for AI agents. Reads locally, transmits nothing.
+Author: Matija Mikulinec
+License: MIT
+Project-URL: Homepage, https://github.com/MatijaMiki/agentscan
+Project-URL: Source, https://github.com/MatijaMiki/agentscan
+Project-URL: Issues, https://github.com/MatijaMiki/agentscan/issues
+Keywords: ai,agents,security,audit,observability,least-privilege
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Security
+Classifier: Topic :: System :: Monitoring
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+
 # agentscan
 
 Scores an AI agent's **authority**, **observability** and **reversibility** —
@@ -19,35 +45,19 @@ what it did?*
 Observability can veto the whole result. That is deliberate — it mirrors how
 these deployments are actually rated.
 
-## Install
-
-No dependencies, Python 3.9+.
-
-```bash
-uvx --from git+https://github.com/MatijaMiki/agentscan agentscan watch
-```
-
-Or install it properly:
-
-```bash
-pipx install git+https://github.com/MatijaMiki/agentscan
-```
-
-Then `agentscan` is on your path. `python3 -m agentscan` works too.
-
 ## Use
 
 ```bash
-agentscan demo                                         # bundled example
-agentscan scan profile.json                            # score a declared profile
-agentscan scan profile.json --html out.html
-agentscan scan profile.json --json
+python3 -m agentscan.cli demo                          # bundled example
+python3 -m agentscan.cli scan profile.json             # score a declared profile
+python3 -m agentscan.cli scan profile.json --html out.html
+python3 -m agentscan.cli scan profile.json --json
 ```
 
 Live, read-only introspection of real credentials:
 
 ```bash
-agentscan live --google "$GOOGLE_TOKEN" --github "$GH_TOKEN" \
+python3 -m agentscan.cli live --google "$GOOGLE_TOKEN" --github "$GH_TOKEN" \
   --controls controls.json
 ```
 
@@ -97,7 +107,7 @@ unclassified rather than silently assumed safe.
 `scopes_used` can be supplied by hand, or pulled from the provider:
 
 ```bash
-agentscan scan profile.json --pull-usage \
+python3 -m agentscan.cli scan profile.json --pull-usage \
   --stripe "$STRIPE_KEY" --github "$GH_TOKEN" --github-org acme \
   --aws-profile agent-role --window-days 90
 ```
@@ -125,8 +135,8 @@ what happened and raises a narrow set of actions you would want to know about
 regardless of intent.
 
 ```bash
-agentscan watch --days 30
-agentscan watch --source openclaw
+python3 -m agentscan.cli watch --days 30
+python3 -m agentscan.cli watch --source openclaw
 ```
 
 Sources:

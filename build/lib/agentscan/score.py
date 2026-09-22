@@ -15,13 +15,9 @@ distinguish from the worst case, and prices accordingly.
 from __future__ import annotations
 
 from .catalog import (
-    lookup, READ, WRITE, FINANCIAL, DESTRUCTIVE, MONETARY, DATA_EGRESS,
+    lookup, AUTHORITY_RANK, READ, WRITE, FINANCIAL, DESTRUCTIVE,
+    MONETARY, EXTERNAL_COMMS, DATA_EGRESS, INFRASTRUCTURE, IDENTITY,
 )
-
-
-class ProfileError(ValueError):
-    """A profile is malformed. Raised rather than scored, because a scan that
-    silently produces a confident wrong number is worse than one that stops."""
 
 # penalty applied per granted scope, by what that scope permits
 _AUTHORITY_COST = {READ: 1, WRITE: 6, FINANCIAL: 14, DESTRUCTIVE: 22}
@@ -31,82 +27,8 @@ _AUTHORITY_COST = {READ: 1, WRITE: 6, FINANCIAL: 14, DESTRUCTIVE: 22}
 _UNUSED_SURCHARGE = 1.5
 
 
-# Penalty -> score. A linear 100-penalty hits zero at ~17 write scopes, so a
-# customer who drops 40 permissions sees the number stay at 0 and concludes
-# the tool is broken. The whole remediate/re-scan/show-the-delta loop depends
-# on this curve always moving, so it decays asymptotically instead.
-_DECAY = 60.0
-
-
 def _clamp(n, lo=0, hi=100):
     return max(lo, min(hi, n))
-
-
-def _decay(penalty):
-    if penalty <= 0:
-        return 100
-    return _clamp(int(round(100.0 * _DECAY / (penalty + _DECAY))))
-
-
-def _validate(profile):
-    """Check shapes before scoring. A scopes value of "s3:*" iterates as four
-    single characters and yields a confident, wrong report -- exactly the
-    failure this tool exists to avoid."""
-    if not isinstance(profile, dict):
-        raise ProfileError("profile must be a JSON object")
-
-    creds = profile.get("credentials", [])
-    if creds is None:
-        creds = []
-    if not isinstance(creds, list):
-        raise ProfileError("'credentials' must be a list, got %s"
-                           % type(creds).__name__)
-
-    for i, cred in enumerate(creds):
-        where = "credentials[%d]" % i
-        if not isinstance(cred, dict):
-            raise ProfileError("%s must be an object, got %s"
-                               % (where, type(cred).__name__))
-        for key in ("scopes", "scopes_used"):
-            val = cred.get(key)
-            if val is None:
-                continue
-            if isinstance(val, str):
-                raise ProfileError(
-                    '%s.%s must be a list of strings, not a single string. '
-                    'Write ["%s"], not "%s".' % (where, key, val, val))
-            if not isinstance(val, list):
-                raise ProfileError("%s.%s must be a list, got %s"
-                                   % (where, key, type(val).__name__))
-            bad = [v for v in val if not isinstance(v, str)]
-            if bad:
-                raise ProfileError("%s.%s contains a non-string entry: %r"
-                                   % (where, key, bad[0]))
-
-    controls = profile.get("controls") or {}
-    if not isinstance(controls, dict):
-        raise ProfileError("'controls' must be an object, got %s"
-                           % type(controls).__name__)
-
-    days = controls.get("trace_retention_days")
-    if days is not None and isinstance(days, bool) or not isinstance(
-            days, (int, float, type(None))):
-        raise ProfileError("controls.trace_retention_days must be a number, "
-                           "got %r" % (days,))
-    if isinstance(days, (int, float)) and days < 0:
-        raise ProfileError("controls.trace_retention_days cannot be negative")
-
-    cap = controls.get("spend_cap_usd")
-    if cap is not None and (isinstance(cap, bool)
-                            or not isinstance(cap, (int, float))):
-        raise ProfileError("controls.spend_cap_usd must be a number or null, "
-                           "got %r" % (cap,))
-
-    approval = controls.get("human_approval", "none")
-    if approval not in ("none", "financial_only", "all"):
-        raise ProfileError("controls.human_approval must be one of "
-                           "none/financial_only/all, got %r" % (approval,))
-    return creds, controls
 
 
 def _resolve(credentials):
@@ -141,7 +63,7 @@ def score_authority(rows):
         if r["usage"] == "unused" and r["authority"] in (FINANCIAL, DESTRUCTIVE, WRITE):
             cost *= _UNUSED_SURCHARGE
         penalty += cost
-    return _decay(penalty)
+    return _clamp(int(round(100 - penalty)))
 
 
 def score_observability(controls):
@@ -200,7 +122,7 @@ def blast_radius(rows, controls):
     cap = controls.get("spend_cap_usd")
     monetary = None
     if MONETARY in dims:
-        monetary = "unbounded" if cap is None else "${:,} per action".format(cap)
+        monetary = "unbounded" if cap is None else "$%s per action" % format(cap, ",")
 
     return {
         "dimensions": sorted(dims.keys()),
@@ -393,8 +315,8 @@ def findings(rows, controls, ba):
 
 
 def scan(profile):
-    credentials, controls = _validate(profile)
-    rows = _resolve(credentials)
+    rows = _resolve(profile.get("credentials", []))
+    controls = profile.get("controls", {}) or {}
 
     a = score_authority(rows)
     o = score_observability(controls)
