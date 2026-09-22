@@ -174,27 +174,55 @@ def verdict(authority, observability, reversibility):
 
 
 def _coverage_findings(profile, rows):
-    """Turn usage-pull coverage gaps into explicit findings, so an unverified
-    provider never silently reads as a clean one."""
+    """Classify each provider's usage evidence, and say so.
+
+    Three states, not two. A provider whose usage was hand-declared in the
+    profile is *self-attested* -- weaker evidence than a pulled audit log,
+    but far stronger than nothing. Collapsing it into "unverified" makes the
+    report contradict itself: it would claim N permissions were never used
+    while simultaneously saying usage could not be determined.
+    """
     out = []
     cov = {c["provider"]: c for c in (profile.get("usage_coverage") or [])}
     providers = sorted({r["provider"] for r in rows})
 
-    blind = [p for p in providers
-             if p not in cov or cov[p]["level"] == "none"]
-    partial = [p for p in providers
-               if p in cov and cov[p]["level"] == "writes"]
+    verified, self_attested, unverified, partial = [], [], [], []
+    for prov in providers:
+        prov_rows = [r for r in rows if r["provider"] == prov]
+        has_data = any(r["usage"] != "unknown" for r in prov_rows)
+        c = cov.get(prov)
+        if c and c["level"] != "none":
+            verified.append(prov)
+            if c["level"] == "writes":
+                partial.append(prov)
+        elif has_data:
+            self_attested.append(prov)
+        else:
+            unverified.append(prov)
 
-    if blind:
+    if unverified:
         out.append({
             "severity": "medium",
-            "title": "Usage could not be verified for %d provider(s)" % len(blind),
-            "body": "Granted permissions could not be compared against exercised "
-                    "ones. Inability to demonstrate least privilege is itself an "
-                    "underwriting finding, and these scopes are reported as "
-                    "unverified rather than assumed safe.",
-            "evidence": blind,
+            "title": "Usage could not be determined for %d provider(s)" % len(unverified),
+            "body": "No usage evidence of any kind was available, so granted "
+                    "permissions could not be compared against exercised ones. "
+                    "These scopes are reported as unverified rather than assumed "
+                    "safe, and inability to demonstrate least privilege is itself "
+                    "an underwriting finding.",
+            "evidence": unverified,
         })
+
+    if self_attested:
+        out.append({
+            "severity": "low",
+            "title": "Usage is self-attested for %d provider(s)" % len(self_attested),
+            "body": "Usage for these providers was declared in the profile rather "
+                    "than pulled from the provider's own audit trail. The findings "
+                    "hold only as far as that declaration does. Run --pull-usage to "
+                    "make them independently evidenced.",
+            "evidence": self_attested,
+        })
+
     if partial:
         out.append({
             "severity": "low",
@@ -204,6 +232,7 @@ def _coverage_findings(profile, rows):
                     "and destructive findings are unaffected.",
             "evidence": partial,
         })
+
     return out
 
 

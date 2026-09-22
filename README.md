@@ -101,6 +101,23 @@ Writes-only coverage is not a partial product. The findings that matter —
 financial, destructive, irreversible — are exactly the ones that leave a
 record in an event stream.
 
+## Usage evidence
+
+Three states, reported distinctly, because collapsing them makes the report
+contradict itself:
+
+| State | Meaning |
+|---|---|
+| Verified | Pulled from the provider's own audit trail |
+| Self-attested | Declared in the profile, not independently pulled |
+| Unverified | No usage evidence of any kind — scopes are not assumed safe |
+
+## Tests
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
 ## Status
 
 - [x] **Credential authority** — no integration required

@@ -102,7 +102,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
 <header>
   <div class="brand">agentscan <span>· agent authority &amp; insurability</span></div>
   <h1>support-copilot (hardened)</h1>
-  <div class="meta">Generated 22 Sep 2026 15:48 UTC · read-only credential introspection</div>
+  <div class="meta">Generated 22 Sep 2026 16:17 UTC · read-only credential introspection</div>
 </header>
 
 <div class="verdict good">
@@ -122,8 +122,11 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
   <div class="kv"><span class="k">Blast radius</span><span class="v">data_egress, external_comms, monetary</span></div>
 </div>
 
-<h3>Findings</h3>
+<h3>Usage coverage</h3>
+<div class="panel"><div style="color:var(--muted);font-size:13.5px">No usage pull was run. Granted permissions could not be compared against exercised ones.</div></div>
 
+<h3>Findings</h3>
+<div class="finding muted"><div class="sev">low</div><h4>Usage is self-attested for 3 provider(s)</h4><p>Usage for these providers was declared in the profile rather than pulled from the provider&#x27;s own audit trail. The findings hold only as far as that declaration does. Run --pull-usage to make them independently evidenced.</p><ul class="ev"><li>· google</li><li>· slack</li><li>· stripe</li></ul></div>
 
 <h3>Granted permissions</h3>
 <div class="panel">
