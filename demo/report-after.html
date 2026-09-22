@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Authority Report</title>
+<style>
+:root{
+  --bg:#fbfaf8; --panel:#fff; --ink:#16150f; --muted:#6a675c; --line:#e5e2d9;
+  --bad:#b4331f; --bad-bg:#fbeeeb; --warn:#8a6100; --warn-bg:#fcf4e2;
+  --good:#1f6b43; --good-bg:#ebf5ee; --info:#2a5b8c; --info-bg:#eaf1f8;
+  --accent:#16150f;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+  --bg:#12120f; --panel:#1a1a16; --ink:#f2f0e9; --muted:#9a968a; --line:#2c2b25;
+  --bad:#f08b78; --bad-bg:#2b1a16; --warn:#e0b25c; --warn-bg:#2a2214;
+  --good:#7fc79b; --good-bg:#16261d; --info:#8fb8de; --info-bg:#172530;
+  --accent:#f2f0e9;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12120f; --panel:#1a1a16; --ink:#f2f0e9; --muted:#9a968a; --line:#2c2b25;
+  --bad:#f08b78; --bad-bg:#2b1a16; --warn:#e0b25c; --warn-bg:#2a2214;
+  --good:#7fc79b; --good-bg:#16261d; --info:#8fb8de; --info-bg:#172530;
+  --accent:#f2f0e9;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:48px 16px 80px}
+header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+.brand{font-weight:650;letter-spacing:-.01em}
+.brand span{color:var(--muted);font-weight:400}
+h1{font-size:26px;letter-spacing:-.02em;margin:14px 0 4px}
+.meta{color:var(--muted);font-size:13px}
+.verdict{display:flex;gap:14px;align-items:flex-start;padding:18px 20px;
+  border-radius:10px;border:1px solid var(--line);margin:24px 0}
+.verdict.bad{background:var(--bad-bg);border-color:color-mix(in srgb,var(--bad) 32%,transparent)}
+.verdict.warn{background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 32%,transparent)}
+.verdict.good{background:var(--good-bg);border-color:color-mix(in srgb,var(--good) 32%,transparent)}
+.badge{font-size:11px;font-weight:700;letter-spacing:.08em;padding:5px 9px;
+  border-radius:5px;white-space:nowrap;text-transform:uppercase}
+.bad .badge{background:var(--bad);color:var(--bg)}
+.warn .badge{background:var(--warn);color:var(--bg)}
+.good .badge{background:var(--good);color:var(--bg)}
+.verdict h2{margin:0 0 5px;font-size:16px;letter-spacing:-.01em}
+.verdict p{margin:0;color:var(--muted);font-size:13.5px}
+.scores{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0}
+.score{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.score .lab{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.score .num{font-size:30px;font-weight:650;letter-spacing:-.03em;margin:6px 0 2px;
+  font-variant-numeric:tabular-nums}
+.score .num small{font-size:14px;color:var(--muted);font-weight:400}
+.track{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:10px}
+.fill{height:100%;border-radius:3px}
+h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  margin:34px 0 12px;font-weight:600}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:9px 0;
+  border-bottom:1px solid var(--line);font-size:14px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--muted)}
+.kv .v{text-align:right;font-variant-numeric:tabular-nums}
+.finding{background:var(--panel);border:1px solid var(--line);border-left-width:3px;
+  border-radius:8px;padding:14px 16px;margin-bottom:10px}
+.finding.bad{border-left-color:var(--bad)}
+.finding.warn{border-left-color:var(--warn)}
+.finding.info{border-left-color:var(--info)}
+.finding.muted{border-left-color:var(--muted)}
+.finding .sev{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.bad .sev{color:var(--bad)} .warn .sev{color:var(--warn)}
+.info .sev{color:var(--info)} .muted .sev{color:var(--muted)}
+.finding h4{margin:5px 0 6px;font-size:15px;letter-spacing:-.01em}
+.finding p{margin:0;color:var(--muted);font-size:13.5px}
+ul.ev{margin:10px 0 0;padding:0;list-style:none}
+ul.ev li{font:12px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);
+  overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;padding:0 8px 9px 0;border-bottom:1px solid var(--line)}
+td{padding:9px 8px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+code{font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.pill{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.04em;
+  padding:2px 7px;border-radius:4px;text-transform:uppercase}
+.p-read{background:var(--info-bg);color:var(--info)}
+.p-write{background:var(--warn-bg);color:var(--warn)}
+.p-financial{background:var(--bad-bg);color:var(--bad)}
+.p-destructive{background:var(--bad);color:var(--bg)}
+.u-unused{color:var(--bad);font-weight:600}
+.u-used{color:var(--muted)}
+footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:12px}
+@media(max-width:620px){
+  .wrap{padding:28px 16px 60px}
+  .scores{grid-template-columns:1fr}
+  .verdict{flex-direction:column;gap:10px}
+  table{display:block;overflow-x:auto}
+}
+</style></head>
+<body><div class="wrap">
+<header>
+  <div class="brand">agentscan <span>· agent authority &amp; insurability</span></div>
+  <h1>support-copilot (hardened)</h1>
+  <div class="meta">Generated 22 Sep 2026 15:48 UTC · read-only credential introspection</div>
+</header>
+
+<div class="verdict good">
+  <div class="badge">INSURABLE</div>
+  <div><h2>Priceable risk · 75/100 (B)</h2><p>Scored across authority, observability and reversibility.</p></div>
+</div>
+
+<div class="scores"><div class="score"><div class="lab">Authority</div><div class="num">66<small>/100 · C</small></div><div class="track"><div class="fill" style="width:66%;background:var(--warn)"></div></div></div><div class="score"><div class="lab">Observability</div><div class="num">100<small>/100 · A</small></div><div class="track"><div class="fill" style="width:100%;background:var(--good)"></div></div></div><div class="score"><div class="lab">Reversibility</div><div class="num">53<small>/100 · D</small></div><div class="track"><div class="fill" style="width:53%;background:var(--warn)"></div></div></div></div>
+
+<h3>Exposure</h3>
+<div class="panel">
+  <div class="kv"><span class="k">Permissions granted</span><span class="v">6</span></div>
+  <div class="kv"><span class="k">Exercised in window</span><span class="v">6</span></div>
+  <div class="kv"><span class="k">Never exercised</span><span class="v" style="color:var(--bad);font-weight:600">0</span></div>
+  <div class="kv"><span class="k">Financial authority</span><span class="v">$200 per action</span></div>
+  <div class="kv"><span class="k">Irreversible actions available</span><span class="v">3</span></div>
+  <div class="kv"><span class="k">Blast radius</span><span class="v">data_egress, external_comms, monetary</span></div>
+</div>
+
+<h3>Findings</h3>
+
+
+<h3>Granted permissions</h3>
+<div class="panel">
+<table><thead><tr><th>Scope</th><th>Provider</th><th>Authority</th><th>Reversible</th><th>Usage</th></tr></thead>
+<tbody><tr><td><code>refunds:write</code><br><span style='color:var(--muted)'>Issue refunds</span></td><td>stripe</td><td><span class='pill p-financial'>financial</span></td><td>no</td><td class='u-used'>used</td></tr><tr><td><code>https://www.googleapis.com/auth/gmail.send</code><br><span style='color:var(--muted)'>Send mail as the user</span></td><td>google</td><td><span class='pill p-write'>write</span></td><td>no</td><td class='u-used'>used</td></tr><tr><td><code>https://www.googleapis.com/auth/drive.file</code><br><span style='color:var(--muted)'>Drive access limited to files the app created</span></td><td>google</td><td><span class='pill p-write'>write</span></td><td>yes</td><td class='u-used'>used</td></tr><tr><td><code>chat:write</code><br><span style='color:var(--muted)'>Post messages</span></td><td>slack</td><td><span class='pill p-write'>write</span></td><td>no</td><td class='u-used'>used</td></tr><tr><td><code>channels:history</code><br><span style='color:var(--muted)'>Read public channel history</span></td><td>slack</td><td><span class='pill p-read'>read</span></td><td>yes</td><td class='u-used'>used</td></tr><tr><td><code>customers:read</code><br><span style='color:var(--muted)'>Read customer records</span></td><td>stripe</td><td><span class='pill p-read'>read</span></td><td>yes</td><td class='u-used'>used</td></tr></tbody></table>
+</div>
+
+<footer>
+No credential, prompt, message body or customer record was transmitted to
+produce this report. Scope classification is advisory; permissions marked
+unclassified were inferred from their action verb and should be confirmed
+manually before this report is relied on for underwriting.
+</footer>
+</div></body></html>

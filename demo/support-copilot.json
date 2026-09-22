@@ -1,0 +1,60 @@
+{
+  "agent": "support-copilot",
+  "description": "Customer support agent. Reads tickets and inbox, answers customers, issues refunds under policy, files bugs.",
+  "credentials": [
+    {
+      "provider": "google",
+      "label": "support@acme.io (Workspace OAuth)",
+      "scopes": [
+        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/contacts"
+      ],
+      "scopes_used": [
+        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/gmail.send"
+      ]
+    },
+    {
+      "provider": "stripe",
+      "label": "stripe live key",
+      "scopes": [
+        "charges:write",
+        "refunds:write",
+        "transfers:write",
+        "customers:read",
+        "customers:write"
+      ],
+      "scopes_used": ["refunds:write", "customers:read"]
+    },
+    {
+      "provider": "slack",
+      "label": "acme workspace app",
+      "scopes": ["chat:write", "channels:history", "groups:history", "im:history", "files:read"],
+      "scopes_used": ["chat:write", "channels:history"]
+    },
+    {
+      "provider": "github",
+      "label": "acme-bot PAT",
+      "scopes": ["repo", "workflow", "gist", "read:org"],
+      "scopes_used": ["read:org"]
+    },
+    {
+      "provider": "aws",
+      "label": "agent-execution-role",
+      "scopes": ["s3:*", "ses:SendEmail", "lambda:InvokeFunction", "dynamodb:PutItem"],
+      "scopes_used": ["s3:GetObject", "lambda:InvokeFunction"]
+    }
+  ],
+  "controls": {
+    "human_approval": "none",
+    "spend_cap_usd": null,
+    "kill_switch": false,
+    "trace_retention_days": 14,
+    "tool_call_attributes": false,
+    "tamper_evident": false,
+    "guardrail": false
+  }
+}

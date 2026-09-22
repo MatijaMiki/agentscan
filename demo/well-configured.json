@@ -1,0 +1,39 @@
+{
+  "agent": "support-copilot (hardened)",
+  "description": "Same agent after least-privilege remediation and instrumentation.",
+  "credentials": [
+    {
+      "provider": "google",
+      "label": "support@acme.io (Workspace OAuth)",
+      "scopes": [
+        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "scopes_used": [
+        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/drive.file"
+      ]
+    },
+    {
+      "provider": "stripe",
+      "label": "stripe restricted key",
+      "scopes": ["refunds:write", "customers:read"],
+      "scopes_used": ["refunds:write", "customers:read"]
+    },
+    {
+      "provider": "slack",
+      "label": "acme workspace app",
+      "scopes": ["chat:write", "channels:history"],
+      "scopes_used": ["chat:write", "channels:history"]
+    }
+  ],
+  "controls": {
+    "human_approval": "financial_only",
+    "spend_cap_usd": 200,
+    "kill_switch": true,
+    "trace_retention_days": 400,
+    "tool_call_attributes": true,
+    "tamper_evident": true,
+    "guardrail": true
+  }
+}

@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+venv/
+
+# Local scan output and real agent profiles. A profile describes exactly
+# what an agent is allowed to do, so these stay out of the repo by default.
+*.local.json
+controls.json
+out.html
+scan-*.html
