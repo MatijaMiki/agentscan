@@ -101,6 +101,35 @@ Writes-only coverage is not a partial product. The findings that matter —
 financial, destructive, irreversible — are exactly the ones that leave a
 record in an event stream.
 
+## Local watch
+
+A flight recorder for agents running on this machine. Not antivirus — there is
+no adversary and no signature, you asked the agent to do things. It records
+what happened and raises a narrow set of actions you would want to know about
+regardless of intent.
+
+```bash
+python3 -m agentscan.cli watch --days 30
+```
+
+Reads Claude Code's local JSONL transcripts. Rules cover credential access,
+secret literals in commands, destructive git, package publishing, recursive
+deletion, cloud destruction, financial API calls, log tampering, and
+exfiltration-shaped pipes.
+
+**Precision over recall, deliberately.** A watcher that fires on a script that
+merely *contains* `rm -rf` gets muted in a day. Three things are therefore not
+actions:
+
+| Not an action | Why |
+|---|---|
+| `grep "rm -rf" src/` | Searching for a string isn't running it |
+| `python3 -c "print('rm -rf /')"` | The payload is Python source, not shell |
+| `cat > f.sh <<'EOF' … EOF` | A heredoc body is data being written |
+
+`bash -c` is the exception — its payload really is shell, so the watcher
+recurses into it.
+
 ## Usage evidence
 
 Three states, reported distinctly, because collapsing them makes the report
@@ -124,5 +153,5 @@ python3 -m unittest discover -s tests -v
 - [x] **Usage pulls** — AWS, Stripe, Google, GitHub, with explicit coverage gaps
 - [ ] Static config scan (spend caps, approval gates, kill switch, instrumentation)
 - [ ] Reconstruction test against live traces
-- [ ] Local agent watch (OpenClaw / Claude Code / Codex / MCP)
+- [x] **Local agent watch** — Claude Code transcripts; OpenClaw / Codex / OTLP next
 - [ ] Adversarial probe (opt-in, staging only)

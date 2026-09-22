@@ -18,6 +18,7 @@ from .score import scan as run_scan
 from .report import render
 from . import introspect
 from . import usage as usage_mod
+from . import watch as watch_mod
 
 
 def _load(path):
@@ -71,7 +72,7 @@ def _emit(result, args):
 def main(argv=None):
     p = argparse.ArgumentParser(prog="agentscan",
                                 description="Score an AI agent's authority, observability and reversibility.")
-    p.add_argument("command", choices=["demo", "scan", "live"])
+    p.add_argument("command", choices=["demo", "scan", "live", "watch"])
     p.add_argument("profile", nargs="?", help="path to a profile JSON")
     p.add_argument("--json", action="store_true", help="emit raw JSON")
     p.add_argument("--html", metavar="PATH", help="also write an HTML report")
@@ -87,7 +88,19 @@ def main(argv=None):
     p.add_argument("--github-org", metavar="ORG", help="GitHub org for audit-log usage pull")
     p.add_argument("--window-days", type=int, default=usage_mod.DEFAULT_WINDOW_DAYS,
                    help="usage lookback window (default 90)")
+    p.add_argument("--days", type=int, default=30,
+                   help="watch: how far back to read local agent history")
+    p.add_argument("--root", metavar="PATH", default=watch_mod.CLAUDE_PROJECTS,
+                   help="watch: agent transcript directory")
     args = p.parse_args(argv)
+
+    if args.command == "watch":
+        records, n = watch_mod.scan_all(root=args.root, since_days=args.days)
+        if args.json:
+            print(json.dumps(records, indent=2))
+        else:
+            print(watch_mod.render(records, n, args.days))
+        return 0
 
     if args.command == "demo":
         here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
