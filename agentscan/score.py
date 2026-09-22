@@ -89,8 +89,8 @@ def _validate(profile):
                            % type(controls).__name__)
 
     days = controls.get("trace_retention_days")
-    if days is not None and isinstance(days, bool) or not isinstance(
-            days, (int, float, type(None))):
+    # bool is a subclass of int, so it has to be rejected explicitly.
+    if isinstance(days, bool) or not isinstance(days, (int, float, type(None))):
         raise ProfileError("controls.trace_retention_days must be a number, "
                            "got %r" % (days,))
     if isinstance(days, (int, float)) and days < 0:

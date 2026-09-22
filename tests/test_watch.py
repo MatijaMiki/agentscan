@@ -139,3 +139,66 @@ class ProseIsNotACommand(unittest.TestCase):
             "command": "ls -la",
             "description": "Get rule breakdown and rm -rf target distribution"})
         self.assertEqual(hits, [])
+
+
+class MentioningIsNotDoing(unittest.TestCase):
+    """A command that prints, greps or comments a dangerous string has not
+    performed it. Every case here was a live false positive found by probing
+    the released build."""
+
+    def sev(self, command):
+        hits, _ = watch.evaluate("Bash", {"command": command})
+        return hits[0]["severity"] if hits else None
+
+    def test_echo_and_printf_arguments_are_literal_text(self):
+        self.assertIsNone(self.sev('echo "rm -rf /"'))
+        self.assertIsNone(self.sev("echo 'run rm -rf ~/x to clean up'"))
+        self.assertIsNone(self.sev("printf 'rm -rf /' > script.sh"))
+        self.assertIsNone(self.sev("echo npm publish"))
+        self.assertIsNone(self.sev('echo "history -c"'))
+
+    def test_comments_are_not_commands(self):
+        self.assertIsNone(self.sev("# rm -rf ~/important"))
+        self.assertIsNone(self.sev("ls -la # rm -rf ~/x"))
+
+    def test_a_real_command_survives_its_own_trailing_comment(self):
+        self.assertEqual(self.sev("rm -rf ~/x # cleanup"), watch.HIGH)
+
+    def test_search_is_judged_per_segment(self):
+        """`cat README | grep "rm -rf"` escaped suppression entirely, because
+        whole-command matching required every segment to be a search."""
+        self.assertIsNone(self.sev("cat README | grep 'rm -rf'"))
+        self.assertIsNone(self.sev('grep -c "npm publish" build.log'))
+
+    def test_git_rm_cached_does_not_touch_the_working_tree(self):
+        self.assertIsNone(self.sev("git rm --cached secrets.txt"))
+        self.assertIsNone(self.sev("git rm -r --cached ~/notes"))
+        self.assertEqual(self.sev("git rm -r ~/notes"), watch.HIGH)
+
+    def test_inert_segments_do_not_hide_a_real_one(self):
+        self.assertEqual(self.sev("echo start; rm -rf ~/x; echo done"), watch.HIGH)
+        self.assertEqual(self.sev('echo "#!/bin/sh" > s && rm -rf ~/y'), watch.HIGH)
+
+    def test_shell_interpreters_are_still_recursed_into(self):
+        self.assertIsNone(self.sev('sh -c \'echo "rm -rf /"\''))
+        self.assertEqual(self.sev('bash -c "rm -rf ~/x"'), watch.HIGH)
+
+    def test_a_leaked_key_fires_even_inside_a_search(self):
+        """Presence is the finding for this rule, so it reads the raw text."""
+        self.assertEqual(self.sev('grep -r "AKIA1234567890ABCDEF" .'),
+                         watch.CRITICAL)
+
+
+class EnvironmentIsReadWhenAsked(unittest.TestCase):
+
+    def test_openclaw_state_dir_honours_a_late_env_change(self):
+        import os
+        before = os.environ.get("OPENCLAW_STATE_DIR")
+        try:
+            os.environ["OPENCLAW_STATE_DIR"] = "/tmp/set-after-import"
+            self.assertEqual(watch.openclaw_state_dir(), "/tmp/set-after-import")
+        finally:
+            if before is None:
+                os.environ.pop("OPENCLAW_STATE_DIR", None)
+            else:
+                os.environ["OPENCLAW_STATE_DIR"] = before

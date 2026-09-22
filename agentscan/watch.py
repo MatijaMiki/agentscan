@@ -22,6 +22,9 @@ import hashlib
 import json
 import os
 import re
+import shutil
+import sqlite3
+import tempfile
 import time
 
 CLAUDE_PROJECTS = os.path.expanduser("~/.claude/projects")
@@ -30,15 +33,17 @@ CRITICAL, HIGH, MEDIUM = "critical", "high", "medium"
 
 
 class Rule(object):
-    def __init__(self, rid, severity, title, why, patterns, suppress_on_search=True):
+    def __init__(self, rid, severity, title, why, patterns, scan_raw=False):
         self.id = rid
         self.severity = severity
         self.title = title
         self.why = why
         self.patterns = [re.compile(p, re.I) for p in patterns]
-        # Searching FOR a dangerous string is not doing the dangerous thing.
-        # `grep -r "rm -rf"` and `grep .aws/credentials` must not fire.
-        self.suppress_on_search = suppress_on_search
+        # Most rules see only the parts of a command that actually execute.
+        # A rule with scan_raw sees everything, because for it the mere
+        # presence of the string is the finding: a live key pasted into a
+        # grep pattern has still been leaked.
+        self.scan_raw = scan_raw
 
     def match(self, text):
         for p in self.patterns:
@@ -53,16 +58,35 @@ _SEARCH_CMD = re.compile(
 _SEARCH_ACTS = re.compile(r"-delete\b|-exec\b|-ok\b|\|\s*xargs\b")
 
 
-def _is_search(command):
-    """True when the command only looks for text, rather than acting on it."""
-    if not command:
+# Commands whose arguments are literal text, never a path being acted on.
+# `cat` is deliberately absent: `cat ~/.aws/credentials` really is a read.
+_TEXT_ONLY = re.compile(r"^\s*(?:sudo\s+)?(?:echo|printf|print)\b")
+
+# `git rm --cached` unstages; it does not touch the working tree.
+_GIT_RM_CACHED = re.compile(r"^\s*(?:sudo\s+)?git\s+rm\b[^|;&]*--cached\b")
+
+# A comment is not a command.
+_COMMENT = re.compile(r"(?:^|\s)#.*$")
+
+
+def _is_inert(segment):
+    """True when a segment cannot perform the action its text mentions."""
+    if not segment.strip() or segment.lstrip().startswith("#"):
+        return True
+    if _TEXT_ONLY.match(segment) or _GIT_RM_CACHED.match(segment):
+        return True
+    return _is_search(segment)
+
+
+def _is_search(segment):
+    """True when this segment only looks for text, rather than acting on it.
+
+    Judged per segment: `cat README | grep "rm -rf"` used to escape
+    suppression entirely, because the `cat` half is not a search.
+    """
+    if not segment or not segment.strip():
         return False
-    for part in re.split(r"(?:\|\||&&|;|\|)", command):
-        if _SEARCH_CMD.match(part) and not _SEARCH_ACTS.search(part):
-            continue
-        if part.strip():
-            return False
-    return True
+    return bool(_SEARCH_CMD.match(segment)) and not _SEARCH_ACTS.search(segment)
 
 
 def _context(text, match, width=70):
@@ -170,7 +194,7 @@ RULES = [
          [r"sk_live_[A-Za-z0-9]{8,}", r"rk_live_[A-Za-z0-9]{8,}",
           r"ghp_[A-Za-z0-9]{20,}", r"github_pat_[A-Za-z0-9_]{20,}",
           r"xox[baprs]-[A-Za-z0-9-]{10,}", r"AKIA[0-9A-Z]{16}",
-          r"-----BEGIN [A-Z ]*PRIVATE KEY-----"], suppress_on_search=False),
+          r"-----BEGIN [A-Z ]*PRIVATE KEY-----"], scan_raw=True),
 
     Rule("git.destructive", HIGH,
          "Destructive git operation",
@@ -319,8 +343,8 @@ def _executable_text(command, depth=0):
 
     kept = []
     for segment in _SPLIT_OPS.split(command):
-        segment = segment.strip()
-        if not segment:
+        segment = _COMMENT.sub("", segment).strip()
+        if not segment or _is_inert(segment):
             continue
         foreign = _FOREIGN_PAYLOAD.match(segment)
         if foreign:
@@ -351,8 +375,13 @@ def _executable_text(command, depth=0):
     return " ; ".join(kept)
 
 
-def _flatten(obj, depth=0):
-    """Collapse a tool input into searchable text."""
+def _flatten(obj, depth=0, executable_only=True):
+    """Collapse a tool input into searchable text.
+
+    With executable_only (the default) a command is first reduced to the parts
+    that actually run. Raw mode keeps everything, for the rules where the mere
+    presence of a string is the finding.
+    """
     if depth > 6:
         return ""
     if isinstance(obj, str):
@@ -360,7 +389,7 @@ def _flatten(obj, depth=0):
     if isinstance(obj, (int, float, bool)) or obj is None:
         return str(obj)
     if isinstance(obj, list):
-        return " ".join(_flatten(o, depth + 1) for o in obj)
+        return " ".join(_flatten(o, depth + 1, executable_only) for o in obj)
     if isinstance(obj, dict):
         parts = []
         for k, v in obj.items():
@@ -369,9 +398,9 @@ def _flatten(obj, depth=0):
             if k == "command":
                 if isinstance(v, (list, tuple)):
                     v = " ".join(str(c) for c in v)
-                if isinstance(v, str):
+                if isinstance(v, str) and executable_only:
                     v = _executable_text(v)
-            parts.append("%s %s" % (k, _flatten(v, depth + 1)))
+            parts.append("%s %s" % (k, _flatten(v, depth + 1, executable_only)))
         return " ".join(parts)
     return ""
 
@@ -387,32 +416,24 @@ MAX_SCAN_CHARS = 64000
 
 def evaluate(tool_name, tool_input):
     """Return the rules a single tool call trips."""
+    raw = _flatten(tool_input, executable_only=False)[:MAX_SCAN_CHARS]
     text = _flatten(tool_input)[:MAX_SCAN_CHARS]
-    command = tool_input.get("command") if isinstance(tool_input, dict) else None
-    if isinstance(command, (list, tuple)):
-        # Some agents pass argv arrays rather than a shell string.
-        command = " ".join(str(c) for c in command)
-    elif not isinstance(command, str):
-        command = None
-    command = _executable_text(command) if command else command
-    searching = _is_search(command)
 
     hits = []
     for rule in RULES:
-        if searching and rule.suppress_on_search:
-            continue
-        m = rule.match(text)
+        subject = raw if rule.scan_raw else text
+        m = rule.match(subject)
         if not m:
             continue
         severity = rule.severity
         refine = REFINERS.get(rule.id)
         if refine:
-            severity = refine(text, severity)
+            severity = refine(subject, severity)
             if severity is None:
                 continue
         hits.append({"rule": rule.id, "severity": severity,
                      "title": rule.title, "why": rule.why,
-                     "evidence": _context(text, m)})
+                     "evidence": _context(subject, m)})
     return hits, text
 
 
@@ -533,10 +554,13 @@ def render(records, scanned, days):
 # The database is opened read-only. It belongs to a running agent.
 # --------------------------------------------------------------------------
 
-import sqlite3
+OPENCLAW_STATE_DEFAULT = os.path.expanduser("~/.openclaw")
 
-OPENCLAW_STATE = os.environ.get("OPENCLAW_STATE_DIR",
-                                os.path.expanduser("~/.openclaw"))
+
+def openclaw_state_dir():
+    """Read the env var when asked, not at import time -- a caller that sets
+    OPENCLAW_STATE_DIR after importing was silently ignored."""
+    return os.environ.get("OPENCLAW_STATE_DIR", OPENCLAW_STATE_DEFAULT)
 
 # Keys that carry a tool's name, and keys that carry its arguments, across the
 # shapes in circulation (Anthropic tool_use, OpenAI function calls, and the
@@ -546,7 +570,7 @@ _ARG_KEYS = ("input", "arguments", "args", "params", "parameters", "toolInput")
 
 
 def openclaw_databases(state_dir=None):
-    root = state_dir or OPENCLAW_STATE
+    root = state_dir or openclaw_state_dir()
     return sorted(glob.glob(os.path.join(
         root, "agents", "*", "agent", "openclaw-agent.sqlite")))
 
@@ -560,8 +584,6 @@ def _open_readonly(path):
     except sqlite3.Error:
         pass
     # Live WAL: work on a copy rather than touching the agent's database.
-    import shutil
-    import tempfile
     tmp = tempfile.mkdtemp(prefix="agentscan-")
     copy = os.path.join(tmp, os.path.basename(path))
     try:
@@ -752,7 +774,6 @@ def scan_openclaw_db(path, source="openclaw"):
     finally:
         conn.close()
         if tmpdir:
-            import shutil
             shutil.rmtree(tmpdir, ignore_errors=True)
     return records
 

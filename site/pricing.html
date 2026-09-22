@@ -1,0 +1,204 @@
+<title>agentscan pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<header>
+  <div class="shell nav">
+    <a class="wordmark" href="index.html">agent<i>scan</i></a>
+    <nav>
+      <a href="index.html#finds">What it finds</a>
+      <a href="index.html#precision" data-optional>Precision</a>
+      <a href="index.html#sources" data-optional>Sources</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="about.html">About</a>
+      <a class="ghost" href="https://github.com/MatijaMiki/agentscan">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero pagehead">
+  <div class="shell">
+    <p class="eyebrow">Pricing</p>
+    <h1>Free where it runs on your machine.</h1>
+    <p class="lede">
+      The scanner and the watcher are open source and stay that way. You pay
+      when you want the record kept somewhere other than one laptop, and when
+      you need it to stand up to someone else's scrutiny.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="shell band">
+    <div class="plans">
+
+      <div class="plan">
+        <div class="tier">Local</div>
+        <div class="price">Free<small> · forever</small></div>
+        <p class="who">One machine. No account, no telemetry, no expiry.</p>
+        <ul>
+          <li>Every watch source and every rule</li>
+          <li>Authority scan across all five providers</li>
+          <li>Usage pulls from your own audit logs</li>
+          <li>HTML and JSON reports</li>
+          <li>MIT licensed, no dependencies</li>
+          <li>Nothing leaves the machine</li>
+        </ul>
+        <a class="act" href="index.html#install">Install</a>
+      </div>
+
+      <div class="plan feature">
+        <div class="tier">Team</div>
+        <div class="price">$30<small> / agent / month</small></div>
+        <p class="who">When more than one machine runs agents and you want one view of all of them.</p>
+        <ul>
+          <li>Everything in Local</li>
+          <li>Action records collected across machines and CI</li>
+          <li>13-month retention</li>
+          <li>Alerts to Slack or email, by severity</li>
+          <li>Authority drift — tells you when an agent's scopes widen</li>
+          <li>Unlimited seats; you are billed on agents, not people</li>
+          <li>Collector is open source and runs in your network</li>
+        </ul>
+        <a class="act" href="mailto:hello@agentscan.dev?subject=agentscan%20Team">Start a trial</a>
+      </div>
+
+      <div class="plan">
+        <div class="tier">Evidence</div>
+        <div class="price">From $1,250<small> / month</small></div>
+        <p class="who">When someone outside the company is going to ask what your agent did.</p>
+        <ul>
+          <li>Everything in Team</li>
+          <li>Hash-chained, tamper-evident records</li>
+          <li>Seven-year retention</li>
+          <li>Underwriter export pack for renewal or a claim</li>
+          <li>Public Agent Trust Page for your own sales cycles</li>
+          <li>Named contact, annual billing</li>
+        </ul>
+        <a class="act quiet" href="mailto:hello@agentscan.dev?subject=agentscan%20Evidence">Talk to us</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">The rule</div>
+    <div>
+      <h2>We don't charge per finding.</h2>
+      <p class="lede">
+        A tool paid by the alert has a financial reason to cry wolf, and the
+        only thing this product really sells is being believed.
+      </p>
+      <p style="color:var(--muted);font-size:15px">
+        On a real machine the first build reported fifteen findings. Eleven were
+        deletions of build and temp directories — all true, none worth reading.
+        Fixing that cut the report to four. Under per-finding pricing that fix
+        would have cost us money, which is exactly why the meter isn't there.
+      </p>
+      <div class="rows" style="margin-top:26px">
+        <div class="row"><span class="k">Metered</span>
+          <span class="v">Agents under watch. That's what the risk scales with.</span></div>
+        <div class="row"><span class="k">Not metered</span>
+          <span class="v">Findings, alerts, seats, scans, rules, reports, retention queries.</span></div>
+        <div class="row"><span class="k">What counts as an agent</span>
+          <span class="v">One deployed agent identity — a support bot, a CI agent, a developer's local assistant. Ten engineers running the same coding agent is ten agents; one agent serving ten thousand customers is one.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">Questions</div>
+    <div>
+      <h2>The ones worth answering up front.</h2>
+      <div class="grid2" style="margin-top:8px">
+        <div class="cell">
+          <h3>Do you see our prompts or data?</h3>
+          <p>No, and not as a policy — the collector runs inside your network and
+             hashes payloads in place. What reaches us is which tool ran, what
+             authority it held, and whether it was reversible.</p>
+        </div>
+        <div class="cell">
+          <h3>What happens if we stop paying?</h3>
+          <p>Local keeps working, because it's the same open-source code. You
+             export your records; we don't hold them hostage to a renewal.</p>
+        </div>
+        <div class="cell">
+          <h3>We have two hundred agents.</h3>
+          <p>Per-agent pricing stops making sense somewhere around fifty. Past
+             that it's a flat platform fee — get in touch and we'll work it out
+             rather than pretending the table scales.</p>
+        </div>
+        <div class="cell">
+          <h3>Can we self-host the paid parts?</h3>
+          <p>Yes, on Evidence. The whole design assumes the sensitive half runs
+             on your infrastructure, so hosting the rest there too is a
+             deployment choice, not a rewrite.</p>
+        </div>
+      </div>
+      <div class="note" style="margin-top:22px">
+        <h3>Honest status</h3>
+        <p>Local ships today and is what the GitHub repository contains. Team
+           and Evidence are being built, and these prices are what they will
+           launch at — if you want either now, you'd be an early customer
+           shaping them, and you should expect to be treated like one.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="shell">
+    <div class="fgrid">
+      <div>
+        <a class="wordmark" href="index.html" style="font-size:16px">agent<i>scan</i></a>
+        <p class="fnote">
+          A flight recorder for AI agents, and a scanner for the authority they
+          hold. Reads locally, transmits nothing.
+        </p>
+        <p class="byline">Built by <span>cenner</span></p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <ul>
+          <li><a href="index.html#finds">What it finds</a></li>
+          <li><a href="index.html#precision">Precision</a></li>
+          <li><a href="index.html#sources">Sources</a></li>
+          <li><a href="index.html#authority">Authority scan</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Docs</h4>
+        <ul>
+          <li><a href="index.html#install">Install</a></li>
+          <li><a href="https://github.com/MatijaMiki/agentscan#readme">README</a></li>
+          <li><a href="https://github.com/MatijaMiki/agentscan/tree/main/tests">Test suite</a></li>
+          <li><a href="index.html#privacy">Data boundary</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="https://github.com/MatijaMiki/agentscan">Repository</a></li>
+          <li><a href="https://github.com/MatijaMiki/agentscan/issues">Issues</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fbase">
+      <span>cenner</span>
+      <span>Runs locally · transmits nothing</span>
+      <span>Python 3.9+ · no dependencies</span>
+    </div>
+  </div>
+</footer>

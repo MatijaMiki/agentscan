@@ -1,194 +1,158 @@
 # agentscan
 
-Scores an AI agent's **authority**, **observability** and **reversibility** —
-the three axes agent-liability underwriters price on — and produces the report
-that makes the agent insurable.
+**A flight recorder for AI agents, and a scanner for the authority they hold.**
+Reads locally. Transmits nothing. No dependencies.
 
-Not a scanner that looks for bugs. A scanner that answers the question a broker
-or a plaintiff will ask: *what is this agent allowed to do, and can you prove
-what it did?*
+Your coding agent has your shell, your keys and your repo. `agentscan` reads
+what it actually ran and surfaces the handful of irreversible actions worth
+knowing about.
 
-## Why these three
+```
+$ agentscan watch --days 90
 
-| Axis | Question | Why it prices |
-|---|---|---|
-| Authority | What is it allowed to do? | Loss is determined by what the agent did *and where it had permission to do it*. |
-| Observability | Can you reconstruct a named past action? | An agent that cannot reconstruct its tool calls is indistinguishable from the worst case, and is rated as such. |
-| Reversibility | Can a wrong action be undone? | Determines whether an incident is a correction or a claim. |
+  agentscan watch  · local agent flight recorder
+  --------------------------------------------------------------
+  4 source(s) over 90 days
 
-Observability can veto the whole result. That is deliberate — it mirrors how
-these deployments are actually rated.
+  1 critical  3 high
+
+  * Credential material accessed          18:13  Bash
+      cat ~/.ssh/id_rsa
+      -> Whatever it read is now in a model context you do not control.
+
+  * Bulk or recursive deletion            14:42  Bash
+      mv '@/components/'*.tsx src/components/ ; rm -rf '@'
+      -> Recursive deletion. Recoverable only if something else was
+         backing it up.
+
+  --------------------------------------------------------------
+  Read locally. Nothing was transmitted.
+```
 
 ## Install
-
-No dependencies, Python 3.9+.
-
-Use `uvx` or `pipx` — both provision their own build toolchain. A very old
-`pip` (macOS ships 21.x with the system Python) cannot read this project's
-metadata and will silently build a wheel named `UNKNOWN-0.0.0` that installs
-without error and gives you no command. If you install with plain `pip`,
-upgrade it first: `python3 -m pip install --upgrade pip`.
 
 ```bash
 uvx --from git+https://github.com/MatijaMiki/agentscan agentscan watch
 ```
 
-Or install it properly:
+Or put it on your path:
 
 ```bash
 pipx install git+https://github.com/MatijaMiki/agentscan
 ```
 
-Then `agentscan` is on your path. `python3 -m agentscan` works too.
+Python 3.9+. Installing with plain `pip`? Upgrade it first — the pip macOS
+ships cannot read this project's metadata and will silently build a wheel
+named `UNKNOWN-0.0.0` that installs fine and gives you no command.
 
-## Use
+## Two tools
 
-```bash
-agentscan demo                                         # bundled example
-agentscan scan profile.json                            # score a declared profile
-agentscan scan profile.json --html out.html
-agentscan scan profile.json --json
-```
+### `agentscan watch` — what your agents did
 
-Live, read-only introspection of real credentials:
+Reads transcripts your agents already wrote to disk. No wrapper, no proxy,
+nothing in your critical path.
 
-```bash
-agentscan live --google "$GOOGLE_TOKEN" --github "$GH_TOKEN" \
-  --controls controls.json
-```
-
-## Where things run
-
-| Component | Runs | Holds |
+| Source | Location | Format |
 |---|---|---|
-| Scanner (this CLI) | Your machine / your CI | Credentials, in memory, for one call |
-| Collector | Your infrastructure | Payloads, hashed in place |
-| Dashboard & Trust Page | Hosted | Derived metadata only |
+| Claude Code | `~/.claude/projects/*/*.jsonl` | JSONL |
+| OpenClaw | `$OPENCLAW_STATE_DIR/agents/*/agent/*.sqlite` | SQLite |
 
-**No credential, prompt, message body or customer record is ever transmitted.**
-Live mode talks only to the credential's own issuer. That is the architecture,
-not a policy — it is why this can be adopted without a security review.
-
-## Profile format
-
-```json
-{
-  "agent": "support-copilot",
-  "credentials": [
-    { "provider": "stripe",
-      "label": "live key",
-      "scopes": ["refunds:write", "customers:read"],
-      "scopes_used": ["refunds:write"] }
-  ],
-  "controls": {
-    "human_approval": "none | financial_only | all",
-    "spend_cap_usd": null,
-    "kill_switch": false,
-    "trace_retention_days": 14,
-    "tool_call_attributes": false,
-    "tamper_evident": false
-  }
-}
-```
-
-`scopes_used` is optional. Omitting it is itself a finding — you cannot
-demonstrate least privilege without it.
-
-Providers with built-in capability catalogs: `google`, `github`, `slack`,
-`stripe`, `aws`. Anything else is classified by action verb and flagged
-unclassified rather than silently assumed safe.
-
-## Usage pulls
-
-`scopes_used` can be supplied by hand, or pulled from the provider:
-
-```bash
-agentscan scan profile.json --pull-usage \
-  --stripe "$STRIPE_KEY" --github "$GH_TOKEN" --github-org acme \
-  --aws-profile agent-role --window-days 90
-```
-
-Coverage is honest per provider, because an unverified provider that silently
-returned an empty set would turn every one of its scopes into a false critical:
-
-| Provider | Source | Coverage | Needs |
-|---|---|---|---|
-| AWS | IAM service-last-accessed | Full, per-service | `aws` CLI, `iam:GenerateServiceLastAccessedDetails` |
-| Stripe | `/v1/events` | Writes only | Any API key |
-| Google | Admin SDK token reports | Full | Workspace admin + `admin.reports.audit.readonly` |
-| GitHub | Org audit log | Full | Enterprise Cloud + `read:audit_log` |
-| Slack | — | None | Audit API is Enterprise Grid only |
-
-Writes-only coverage is not a partial product. The findings that matter —
-financial, destructive, irreversible — are exactly the ones that leave a
-record in an event stream.
-
-## Local watch
-
-A flight recorder for agents running on this machine. Not antivirus — there is
-no adversary and no signature, you asked the agent to do things. It records
-what happened and raises a narrow set of actions you would want to know about
-regardless of intent.
+Nine rules: credential access, secret literals in commands, package
+publishing, cloud destruction, financial API calls, log tampering, destructive
+git, recursive deletion, exfiltration-shaped pipes.
 
 ```bash
 agentscan watch --days 30
 agentscan watch --source openclaw
+agentscan watch --json
 ```
 
-Sources:
+### `agentscan scan` — what they're allowed to do next
 
-| Source | Location | Format |
-|---|---|---|
-| Claude Code | `~/.claude/projects/*/*.jsonl` | JSONL transcripts |
-| OpenClaw | `$OPENCLAW_STATE_DIR/agents/*/agent/openclaw-agent.sqlite` | SQLite |
+Reads the credentials an agent holds, read-only, and scores the three things
+that determine exposure.
 
-OpenClaw's transcript schema is undocumented beyond "append-only,
-tree-structured", so the adapter **discovers the schema at runtime** and
-recognises tool calls by shape (Anthropic `tool_use`, OpenAI function calls,
-and the common wrapper key names) rather than pinning table and column names
-that would break on the next release. The database is opened read-only, and
-falls back to a copy if the running agent holds a WAL lock.
+| Axis | Question |
+|---|---|
+| Authority | What is it allowed to do? |
+| Observability | Can you reconstruct a named past action? |
+| Reversibility | Can a wrong action be undone? |
 
-Rules cover credential access,
-secret literals in commands, destructive git, package publishing, recursive
-deletion, cloud destruction, financial API calls, log tampering, and
-exfiltration-shaped pipes.
+Observability vetoes the overall verdict. An agent that cannot reconstruct its
+own tool calls is indistinguishable from the worst case.
 
-**Precision over recall, deliberately.** A watcher that fires on a script that
-merely *contains* `rm -rf` gets muted in a day. Three things are therefore not
-actions:
+```bash
+agentscan demo                                # see it on a worked example
+agentscan scan profile.json --html report.html
+agentscan live --github "$GH_TOKEN"           # read-only introspection
+agentscan scan profile.json --pull-usage --stripe "$STRIPE_KEY"
+```
+
+Capability catalogues for Google, GitHub, Slack, Stripe and AWS. Unrecognised
+scopes are classified by action verb and flagged unclassified — never assumed
+safe.
+
+## Precision is the feature
+
+A watcher that cries wolf gets muted in a day, and a muted watcher records
+nothing anyone reads. So these are **not** treated as actions:
 
 | Not an action | Why |
 |---|---|
 | `grep "rm -rf" src/` | Searching for a string isn't running it |
 | `python3 -c "print('rm -rf /')"` | The payload is Python source, not shell |
+| `echo "rm -rf /"` | An echo argument is literal text |
 | `cat > f.sh <<'EOF' … EOF` | A heredoc body is data being written |
+| `git rm --cached x` | Unstages; never touches the working tree |
+| `# rm -rf ~/x` | A comment |
+| `rm -rf build` `rm -rf /tmp/x` | Deleting build output is not an incident |
 
-`bash -c` is the exception — its payload really is shell, so the watcher
-recurses into it.
+`bash -c` is the exception — its payload really is shell, so the parser
+recurses into it. And severity follows the **target**, not the verb:
+`rm -rf /tmp/x` is silent, `rm -rf ~/Documents` is high, `rm -rf /` is
+critical.
 
-## Usage evidence
+Every row above came from running the tool against a real machine and finding
+it wrong. On that machine the first build reported 15 findings; 3 were false
+positives and 11 were true deletions of build directories that nobody would
+want to read. It reports 4 now, and all four are real.
 
-Three states, reported distinctly, because collapsing them makes the report
-contradict itself:
+## Nothing leaves the machine
+
+Not a policy, an architecture:
+
+- Credentials are held in memory for one call and never written down
+- Live introspection talks only to the credential's own issuer
+- Scans never exercise a permission and never need a write-scoped token
+- No runtime dependencies — nothing to audit before you point this at your keys
+
+## Say what you don't know
+
+Usage evidence has three states, reported distinctly, because collapsing them
+makes the report contradict itself:
 
 | State | Meaning |
 |---|---|
 | Verified | Pulled from the provider's own audit trail |
 | Self-attested | Declared in the profile, not independently pulled |
-| Unverified | No usage evidence of any kind — scopes are not assumed safe |
+| Unverified | No evidence at all — scopes are not assumed safe |
 
-## Tests
+Usage pulls: AWS IAM service-last-accessed, Stripe events, Google Admin SDK,
+GitHub org audit log. Slack has no usable API below Enterprise Grid and says
+so rather than returning an empty set.
+
+## Status
+
+Alpha, honestly. The local tools ship and are tested; hosted collection and
+evidence retention are not built yet.
 
 ```bash
 python3 -m unittest discover -s tests -v
 ```
 
-## Status
+63 tests, written as invariants rather than expected output — most of them
+exist because something on this page was once wrong.
 
-- [x] **Credential authority** — no integration required
-- [x] **Usage pulls** — AWS, Stripe, Google, GitHub, with explicit coverage gaps
-- [ ] Static config scan (spend caps, approval gates, kill switch, instrumentation)
-- [ ] Reconstruction test against live traces
-- [x] **Local agent watch** — Claude Code + OpenClaw; Codex / OTLP receiver next
-- [ ] Adversarial probe (opt-in, staging only)
+## Licence
+
+MIT. Built by cenner.

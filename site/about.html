@@ -1,0 +1,211 @@
+<title>About agentscan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<header>
+  <div class="shell nav">
+    <a class="wordmark" href="index.html">agent<i>scan</i></a>
+    <nav>
+      <a href="index.html#finds">What it finds</a>
+      <a href="index.html#precision" data-optional>Precision</a>
+      <a href="index.html#sources" data-optional>Sources</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="about.html">About</a>
+      <a class="ghost" href="https://github.com/MatijaMiki/agentscan">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero pagehead">
+  <div class="shell">
+    <p class="eyebrow">About</p>
+    <h1>Agents got credentials before anyone built the recorder.</h1>
+    <p class="lede">
+      Sometime in the last two years the assistant stopped suggesting commands
+      and started running them. Nobody shipped the thing that writes down what
+      happened.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">The situation</div>
+    <div class="prose">
+      <p>
+        An agent on a developer's laptop today holds a shell, a GitHub token, a
+        cloud role and whatever was in the <span class="icode">.env</span> file
+        it read on the way past. In production it holds a payments key. Roughly
+        <strong>42% of new code is AI-generated or AI-assisted</strong>, and a
+        large share of the backend code among it ships with permissions far
+        wider than it uses.
+      </p>
+      <p>
+        Insurers noticed first. Through 2025 and 2026 the major carriers filed
+        to exclude AI-related damage from general liability, and regulators
+        approved most of those filings. A specialist market formed to fill the
+        gap, and it prices on one question above all others:
+        <strong>can you reconstruct what the agent did, and under whose
+        authority?</strong> Most teams cannot. They have latency dashboards and
+        no action record at all.
+      </p>
+      <p>
+        That gap is the whole product. Not detecting a villain — there usually
+        isn't one. Producing a record of irreversible actions that holds up when
+        somebody outside the company asks.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">Two halves</div>
+    <div>
+      <h2>What happened, and what could happen next.</h2>
+      <div class="grid2" style="margin-top:20px">
+        <div class="cell">
+          <h3>The watcher</h3>
+          <p>Reads what your agents already wrote to disk — Claude Code
+             transcripts, OpenClaw's SQLite store — and surfaces the handful of
+             irreversible actions worth knowing about. No wrapper, no proxy,
+             nothing in the critical path.</p>
+        </div>
+        <div class="cell">
+          <h3>The scanner</h3>
+          <p>Reads the credentials an agent holds, read-only, and scores
+             authority, observability and reversibility. Tells you which
+             permissions were granted and never once used — full liability,
+             zero utility.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">Principles</div>
+    <div>
+      <h2>Four decisions everything else follows from.</h2>
+      <div class="principles" style="margin-top:20px">
+        <div class="principle">
+          <div class="num">01</div>
+          <h3>Precision over recall</h3>
+          <p>A watcher that cries wolf gets muted in a day, and a muted watcher
+             records nothing anyone reads. Searching for a dangerous string,
+             writing a script that contains one, and deleting a build directory
+             are all not actions. Getting that right cost more work than the
+             detection itself.</p>
+        </div>
+        <div class="principle">
+          <div class="num">02</div>
+          <h3>Evidence, not intelligence</h3>
+          <p>The product is not a judgement about whether an action was allowed
+             — you asked the agent to do things. It is a record of what
+             happened that a third party can check.</p>
+        </div>
+        <div class="principle">
+          <div class="num">03</div>
+          <h3>Nothing leaves the machine</h3>
+          <p>Anything touching a secret runs locally; introspection talks only
+             to the credential's own issuer. This is an architecture rather than
+             a promise, which is why it can be adopted without a security
+             review.</p>
+        </div>
+        <div class="principle">
+          <div class="num">04</div>
+          <h3>Say what you don't know</h3>
+          <p>A provider whose usage can't be verified is reported as unverified,
+             never as clean. An unrecognised permission is flagged, never
+             assumed safe. A confident wrong answer is worse than no answer.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">Who</div>
+    <div class="prose">
+      <h2>Built by cenner.</h2>
+      <p>
+        One person, working in the open. The code is MIT licensed with no
+        runtime dependencies, because a tool you point at your own credentials
+        should be one you can read end to end in an afternoon.
+      </p>
+      <p>
+        Everything on this site is something the tool actually does. The
+        precision rules exist because the first version was run against a real
+        machine and produced three false positives and eleven findings nobody
+        would want — the fixes for both are in the commit history, with the
+        reasoning.
+      </p>
+      <div class="note" style="margin-top:26px">
+        <h3>Where it is</h3>
+        <p>Alpha, and honestly so. The local tools ship today and are tested.
+           The hosted and evidence tiers are being built. If that interests you
+           more than it worries you, the repository and the issue tracker are
+           the front door.</p>
+      </div>
+      <div class="cmdrow" style="margin-top:26px">
+        <a class="ghost" href="https://github.com/MatijaMiki/agentscan" style="padding:11px 15px">Repository</a>
+        <a class="ghost" href="pricing.html" style="padding:11px 15px">Pricing</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="shell">
+    <div class="fgrid">
+      <div>
+        <a class="wordmark" href="index.html" style="font-size:16px">agent<i>scan</i></a>
+        <p class="fnote">
+          A flight recorder for AI agents, and a scanner for the authority they
+          hold. Reads locally, transmits nothing.
+        </p>
+        <p class="byline">Built by <span>cenner</span></p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <ul>
+          <li><a href="index.html#finds">What it finds</a></li>
+          <li><a href="index.html#precision">Precision</a></li>
+          <li><a href="index.html#sources">Sources</a></li>
+          <li><a href="index.html#authority">Authority scan</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Docs</h4>
+        <ul>
+          <li><a href="index.html#install">Install</a></li>
+          <li><a href="https://github.com/MatijaMiki/agentscan#readme">README</a></li>
+          <li><a href="https://github.com/MatijaMiki/agentscan/tree/main/tests">Test suite</a></li>
+          <li><a href="index.html#privacy">Data boundary</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="https://github.com/MatijaMiki/agentscan">Repository</a></li>
+          <li><a href="https://github.com/MatijaMiki/agentscan/issues">Issues</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fbase">
+      <span>cenner</span>
+      <span>Runs locally · transmits nothing</span>
+      <span>Python 3.9+ · no dependencies</span>
+    </div>
+  </div>
+</footer>
