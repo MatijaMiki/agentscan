@@ -600,8 +600,8 @@ _TIME_COL = re.compile(r"^(created_?at|timestamp|ts|time|updated_?at|date)$", re
 
 
 def _time_columns(conn, table):
-    return [r[1] for r in conn.execute('PRAGMA table_info("%s")'
-                                       % table.replace('"', ''))
+    return [r[1] for r in conn.execute("PRAGMA table_info(%s)"
+                                       % _quote_ident(table))
             if _TIME_COL.match(r[1] or "")]
 
 
@@ -624,9 +624,19 @@ def _as_iso(value):
     return _dt.datetime.fromtimestamp(n, _dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
 
+def _quote_ident(name):
+    """Escape a SQLite identifier by doubling quotes.
+
+    Stripping them instead was safe but silently wrong: a table whose name
+    contains a quote became a name that does not exist, the query errored,
+    and its rows were skipped without a word.
+    """
+    return '"%s"' % name.replace('"', '""')
+
+
 def _text_columns(conn, table):
     cols = []
-    for row in conn.execute('PRAGMA table_info("%s")' % table.replace('"', '')):
+    for row in conn.execute("PRAGMA table_info(%s)" % _quote_ident(table)):
         name, ctype = row[1], (row[2] or "").upper()
         if ctype in ("", "TEXT", "BLOB", "JSON") or "CHAR" in ctype:
             cols.append(name)
@@ -724,10 +734,10 @@ def scan_openclaw_db(path, source="openclaw"):
             if not cols:
                 continue
             tcols = _time_columns(conn, table)
-            quoted = ", ".join('"%s"' % c.replace('"', '') for c in cols + tcols)
+            quoted = ", ".join(_quote_ident(c) for c in cols + tcols)
             try:
-                rows = conn.execute('SELECT %s FROM "%s"'
-                                    % (quoted, table.replace('"', '')))
+                rows = conn.execute("SELECT %s FROM %s"
+                                    % (quoted, _quote_ident(table)))
             except sqlite3.Error:
                 continue
             n_text = len(cols)

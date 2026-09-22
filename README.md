@@ -117,6 +117,25 @@ it wrong. On that machine the first build reported 15 findings; 3 were false
 positives and 11 were true deletions of build directories that nobody would
 want to read. It reports 4 now, and all four are real.
 
+## Handling credentials
+
+Pass tokens through the environment, not the command line. Anything in argv is
+readable by every user on the machine through the process table, and is written
+to your shell history.
+
+```bash
+export AGENTSCAN_STRIPE_TOKEN="rk_live_..."
+agentscan scan profile.json --pull-usage
+```
+
+`export` it first — `VAR=x agentscan ...` on one line still puts the value in
+that shell's own command line. `--stripe env:MY_VAR` and `--stripe -` (read one
+line from stdin) also work. Passing a token as a flag value still works and
+prints a warning saying why it shouldn't.
+
+Reports are written mode `600` and never through a symlink: a report maps an
+agent's entire authority surface, which is useful to somebody other than you.
+
 ## Nothing leaves the machine
 
 Not a policy, an architecture:
@@ -150,7 +169,7 @@ evidence retention are not built yet.
 python3 -m unittest discover -s tests -v
 ```
 
-63 tests, written as invariants rather than expected output — most of them
+73 tests, written as invariants rather than expected output — most of them
 exist because something on this page was once wrong.
 
 ## Licence

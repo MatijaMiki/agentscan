@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime
 import html
+import os
 
 _STATUS_TONE = {"UNINSURABLE": "bad", "IMPAIRED": "warn", "INSURABLE": "good"}
 _SEV_TONE = {"critical": "bad", "high": "warn", "medium": "info", "low": "muted"}
@@ -237,8 +238,25 @@ manually before this report is relied on for underwriting.
 
 
 def write_html(result, path):
+    """Write the report owner-readable only, and never through a symlink.
+
+    The report is a map of an agent's entire authority surface -- which
+    permissions exist, which are unused, what the blast radius is. That is
+    useful to an attacker, so it does not get mode 644, and a pre-planted
+    symlink at the output path does not get followed.
+    """
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    flags |= getattr(os, "O_NOFOLLOW", 0)
     try:
-        with open(path, "w") as fh:
+        fd = os.open(path, flags, 0o600)
+    except OSError as e:
+        if getattr(e, "errno", None) in (40, 62):      # ELOOP
+            raise SystemExit("agentscan: %s is a symlink; refusing to write "
+                             "through it" % path)
+        raise SystemExit("agentscan: cannot write %s (%s)" % (path, e.strerror))
+    try:
+        os.fchmod(fd, 0o600)
+        with os.fdopen(fd, "w") as fh:
             fh.write(build_html(result))
     except OSError as e:
         raise SystemExit("agentscan: cannot write %s (%s)" % (path, e.strerror))

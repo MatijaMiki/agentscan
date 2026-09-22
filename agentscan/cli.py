@@ -21,6 +21,31 @@ from . import usage as usage_mod
 from . import watch as watch_mod
 
 
+def _token(args, provider):
+    """Resolve a credential without requiring it on the command line.
+
+    Anything in argv is world-readable through the process table for as long
+    as the process runs, and is written to shell history besides. The
+    environment variable is the documented path; a literal flag still works
+    but says so.
+    """
+    env_name = "AGENTSCAN_%s_TOKEN" % provider.upper()
+    value = getattr(args, provider, None)
+
+    if value == "-":
+        value = sys.stdin.readline().strip()
+    elif value and value.startswith("env:"):
+        var = value[4:]
+        value = os.environ.get(var)
+        if not value:
+            raise SystemExit("agentscan: %s is empty or unset" % var)
+    elif value:
+        print("  warning: --%s put a credential in this machine's process "
+              "table. Use %s instead." % (provider, env_name), file=sys.stderr)
+
+    return value or os.environ.get(env_name)
+
+
 def run_scan(profile):
     """Score a profile, turning a malformed one into a message."""
     try:
@@ -61,7 +86,7 @@ def _pull_usage(profile, args):
     providers = {c.get("provider") for c in profile.get("credentials", [])}
 
     for provider in sorted(providers & set(usage_mod.PULLS)):
-        token = getattr(args, provider, None)
+        token = _token(args, provider)
         try:
             if provider == "aws":
                 results["aws"] = usage_mod.aws_usage(
@@ -106,7 +131,11 @@ def main(argv=None):
     p.add_argument("--html", metavar="PATH", help="also write an HTML report")
     for name in introspect.PROVIDERS:
         p.add_argument("--%s" % name, metavar="TOKEN",
-                       help="%s credential to introspect (read-only)" % name)
+                       help="%s credential. Prefer AGENTSCAN_%s_TOKEN in the "
+                            "environment: a value passed here is visible to "
+                            "every user on this machine via ps, and lands in "
+                            "your shell history."
+                            % (name, name.upper()))
     p.add_argument("--controls", metavar="PATH",
                    help="controls JSON to pair with live introspection")
     p.add_argument("--pull-usage", action="store_true",
@@ -157,7 +186,7 @@ def main(argv=None):
     # live
     creds, errors = [], []
     for name, fn in introspect.PROVIDERS.items():
-        token = getattr(args, name, None)
+        token = _token(args, name)
         if not token:
             continue
         try:
@@ -166,7 +195,8 @@ def main(argv=None):
             errors.append("%s: %s" % (name, e))
     if not creds:
         print("No credentials introspected. %s" % ("; ".join(errors) or
-              "Pass at least one of --google/--github/--slack/--stripe."),
+              "Set AGENTSCAN_<PROVIDER>_TOKEN, or pass --google/--github/"
+              "--slack/--stripe."),
               file=sys.stderr)
         return 1
     for e in errors:
