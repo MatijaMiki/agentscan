@@ -470,6 +470,12 @@ footer{border-top:1px solid var(--rule);background:var(--surface)}
 .form .fnote{margin-top:14px;max-width:46ch}
 @media(max-width:560px){.form .act{align-self:stretch;text-align:center}}
 
+/* Dimmed and inert for a beat after sending, so the send registers without
+   the page moving, and a reflex second click lands on nothing. */
+.form.is-sent{opacity:.5;pointer-events:none;transition:opacity .18s ease}
+.form.is-sent .fnote{opacity:1}
+.form{transition:opacity .35s ease}
+
 /* One status line under the button carries all three states. */
 .form .fnote.sent{color:var(--sp4)}
 .form .fnote.sent::before{content:"\2713\00a0\00a0";font-weight:700}

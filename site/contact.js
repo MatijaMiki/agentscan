@@ -11,6 +11,7 @@
   var note = document.getElementById("form-note");
   var button = document.getElementById("send");
   var FIELDS = ["email", "message"];
+  var SETTLE_MS = 2500;
   var RESTING = note ? note.textContent.trim() : "";
 
   /* Let a link carry the topic in, so "Start a trial" lands on the right one. */
@@ -34,6 +35,17 @@
     if (!button) return;
     button.disabled = on;
     button.textContent = on ? "Sending…" : "Send →";
+  }
+
+  /* After a send the form dims and stops accepting input for a moment. It
+     acknowledges the send without the page moving, and it absorbs the second
+     click people give a button that has just gone quiet. */
+  function lock(on) {
+    form.classList.toggle("is-sent", on);
+    Array.prototype.forEach.call(form.elements, function (el) {
+      if (el.id !== "send") el.disabled = on;
+    });
+    if (button) button.disabled = on;
   }
 
   function get(id) {
@@ -61,6 +73,7 @@
 
     busy(true);
     say(RESTING);
+    var sent = false;
     try {
       var res = await fetch("/api/contact", {
         method: "POST",
@@ -77,6 +90,7 @@
           if (el) el.value = "";
         });
         say("Sent. We read everything, and a day or two is a normal reply time.", "sent");
+        sent = true;
         return;
       }
       say(data.error || "That did not send. Write to hello@ranwhat.com instead.", "warn");
@@ -86,6 +100,10 @@
       busy(false);
       /* A used token is not accepted twice, so get a fresh one for a retry. */
       if (window.turnstile) { try { window.turnstile.reset(); } catch (e) {} }
+      if (sent) {
+        lock(true);
+        setTimeout(function () { lock(false); }, SETTLE_MS);
+      }
     }
   });
 
