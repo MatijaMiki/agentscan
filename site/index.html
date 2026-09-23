@@ -1,10 +1,29 @@
-<title>ranwhat</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ranwhat — find out what your AI agents actually did</title>
+<meta name="description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything. Free and open source.">
+<link rel="canonical" href="https://ranwhat.com/">
+<meta name="color-scheme" content="light dark">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ranwhat">
+<meta property="og:url" content="https://ranwhat.com/">
+<meta property="og:title" content="ranwhat — find out what your AI agents actually did">
+<meta property="og:description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything. Free and open source.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ranwhat — find out what your AI agents actually did">
+<meta name="twitter:description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything. Free and open source.">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-
-
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"ranwhat","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux","url":"https://ranwhat.com/","downloadUrl":"https://github.com/MatijaMiki/ranwhat","license":"https://opensource.org/licenses/MIT","description":"A local flight recorder for AI coding agents. Reads what agents actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"cenner"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does it send anything anywhere?","acceptedAnswer":{"@type":"Answer","text":"No. The watcher reads transcripts your agents already wrote to disk and prints to your terminal. The scanner talks only to the credential's own issuer when you ask it to introspect a token. There is no telemetry, no account and no server."}},{"@type":"Question","name":"Does it need my credentials?","acceptedAnswer":{"@type":"Answer","text":"The watcher needs none at all — point it at your machine and it works. The authority scanner can introspect tokens read-only, but it never exercises a permission and never needs a write-scoped credential. Pass tokens through the environment rather than the command line, because anything in argv is readable by every user on the machine."}},{"@type":"Question","name":"Which agents does it read?","acceptedAnswer":{"@type":"Answer","text":"Claude Code and OpenClaw today. Codex and an OTLP receiver are next, which will cover anything emitting OpenTelemetry GenAI spans. It reads files the agent already wrote, so there is no wrapper, no proxy and nothing in your critical path."}},{"@type":"Question","name":"Will it slow my agent down?","acceptedAnswer":{"@type":"Answer","text":"No. It runs after the fact against files on disk. Your agent never knows it exists."}},{"@type":"Question","name":"Is it safe to run clean --apply?","acceptedAnswer":{"@type":"Answer","text":"It reports by default and changes nothing until you ask. When you do, it writes a timestamped backup first, then parses the rewritten file back before replacing the original, so a transcript is never left corrupted. Ordinary config, templates and placeholders are left alone."}},{"@type":"Question","name":"If I mask a secret, is it safe now?","acceptedAnswer":{"@type":"Answer","text":"No, and the tool says so. The value was already written to disk in plaintext and already sat in a model context you do not control. Masking stops it leaking a second time. Rotating it is the actual fix, which is why the report leads with what to rotate and where."}},{"@type":"Question","name":"How is this different from scanning my agent's config?","acceptedAnswer":{"@type":"Answer","text":"Tools that scan agent components look at what is installed — MCP servers, skills, configuration — for known-bad content. ranwhat looks at what your agent actually did with the access it has, and what it is still allowed to do next time."}},{"@type":"Question","name":"What does it cost?","acceptedAnswer":{"@type":"Answer","text":"Nothing on your own machine, forever, and the code is MIT licensed with no dependencies. Paid tiers exist for collecting records across machines and for evidence retention. We never charge per finding — a tool paid by the alert has a reason to cry wolf."}},{"@type":"Question","name":"Does it work on Linux and Windows?","acceptedAnswer":{"@type":"Answer","text":"Linux yes. Windows is untested — it is pure Python with no platform-specific calls, so it will probably work, but nobody has verified it. Tell us if you do."}}]}]}</script>
+</head>
+<body>
 <header>
   <div class="shell nav">
     <a class="wordmark" href="#top">ran<i>what</i></a>
@@ -13,6 +32,7 @@
       <a href="#precision" data-optional>Precision</a>
       <a href="#sources" data-optional>Sources</a>
       <a href="#authority" data-optional>Authority</a>
+      <a href="#faq" data-optional>FAQ</a>
       <a href="pricing.html">Pricing</a>
       <a href="about.html">About</a>
       <a class="ghost" href="https://github.com/MatijaMiki/ranwhat">GitHub</a>
@@ -289,6 +309,18 @@
   </div>
 </section>
 
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="shell band split">
+    <div class="marginal">07 — Questions</div>
+    <div>
+      <h2>The ones worth answering up front.</h2>
+      <div class="faqs"><div class="faq"><h3>Does it send anything anywhere?</h3><p>No. The watcher reads transcripts your agents already wrote to disk and prints to your terminal. The scanner talks only to the credential's own issuer when you ask it to introspect a token. There is no telemetry, no account and no server.</p></div><div class="faq"><h3>Does it need my credentials?</h3><p>The watcher needs none at all — point it at your machine and it works. The authority scanner can introspect tokens read-only, but it never exercises a permission and never needs a write-scoped credential. Pass tokens through the environment rather than the command line, because anything in argv is readable by every user on the machine.</p></div><div class="faq"><h3>Which agents does it read?</h3><p>Claude Code and OpenClaw today. Codex and an OTLP receiver are next, which will cover anything emitting OpenTelemetry GenAI spans. It reads files the agent already wrote, so there is no wrapper, no proxy and nothing in your critical path.</p></div><div class="faq"><h3>Will it slow my agent down?</h3><p>No. It runs after the fact against files on disk. Your agent never knows it exists.</p></div><div class="faq"><h3>Is it safe to run clean --apply?</h3><p>It reports by default and changes nothing until you ask. When you do, it writes a timestamped backup first, then parses the rewritten file back before replacing the original, so a transcript is never left corrupted. Ordinary config, templates and placeholders are left alone.</p></div><div class="faq"><h3>If I mask a secret, is it safe now?</h3><p>No, and the tool says so. The value was already written to disk in plaintext and already sat in a model context you do not control. Masking stops it leaking a second time. Rotating it is the actual fix, which is why the report leads with what to rotate and where.</p></div><div class="faq"><h3>How is this different from scanning my agent's config?</h3><p>Tools that scan agent components look at what is installed — MCP servers, skills, configuration — for known-bad content. ranwhat looks at what your agent actually did with the access it has, and what it is still allowed to do next time.</p></div><div class="faq"><h3>What does it cost?</h3><p>Nothing on your own machine, forever, and the code is MIT licensed with no dependencies. Paid tiers exist for collecting records across machines and for evidence retention. We never charge per finding — a tool paid by the alert has a reason to cry wolf.</p></div><div class="faq"><h3>Does it work on Linux and Windows?</h3><p>Linux yes. Windows is untested — it is pure Python with no platform-specific calls, so it will probably work, but nobody has verified it. Tell us if you do.</p></div></div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <footer>
@@ -315,6 +347,7 @@
         <h4>Docs</h4>
         <ul>
           <li><a href="#install">Install</a></li>
+          <li><a href="#faq">FAQ</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat#readme">README</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat/tree/main/tests">Test suite</a></li>
           <li><a href="#privacy">Data boundary</a></li>
@@ -324,7 +357,8 @@
         <h4>Project</h4>
         <ul>
           <li><a href="about.html">About</a></li>
-          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="#faq" data-optional>FAQ</a>
+      <a href="pricing.html">Pricing</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat">Repository</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat/issues">Issues</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat/commits/main">Changelog</a></li>
@@ -341,3 +375,6 @@
 </footer>
 
 <script src="copy.js" defer></script>
+
+</body>
+</html>
