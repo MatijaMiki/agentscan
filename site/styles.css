@@ -470,6 +470,10 @@ footer{border-top:1px solid var(--rule);background:var(--surface)}
 .form .fnote{margin-top:14px;max-width:46ch}
 @media(max-width:560px){.form .act{align-self:stretch;text-align:center}}
 
+.form .sent{margin:0;color:var(--sp4);font-size:16px;max-width:46ch}
+.form .act[disabled]{opacity:.55;cursor:default}
+.form .act[disabled]:hover{background:transparent;color:var(--ink)}
+
 /* ---------- follow ---------- */
 ul.follow{list-style:none;margin:20px 0 0;padding:0;display:flex;
   flex-direction:column;gap:1px;background:var(--rule-2);

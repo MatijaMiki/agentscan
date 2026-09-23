@@ -1,54 +1,79 @@
-/* Composes a mailto: from the form. There is no backend and no third party:
-   the message only ever exists in the visitor's own mail client until they
-   choose to send it. Degrades to the plain address if anything here fails. */
+/* Posts the form to /api/contact, which verifies the Turnstile token before
+ * sending anything. Everything here is convenience: the checks that matter run
+ * on the server, because anything in this file can be edited by whoever is
+ * looking at the page.
+ */
 (function () {
   "use strict";
   var form = document.getElementById("contact-form");
   if (!form) return;
 
-  var SUBJECTS = {
-    team: "ranwhat Team",
-    evidence: "ranwhat Evidence",
-    bug: "ranwhat: something the tool got wrong",
-    other: "ranwhat"
-  };
+  var note = document.getElementById("form-note");
+  var button = document.getElementById("send");
+  var RESTING = note ? note.textContent : "";
 
   /* Let a link carry the topic in, so "Start a trial" lands on the right one. */
   try {
     var wanted = new URLSearchParams(location.search).get("about");
     var about = document.getElementById("about");
-    if (wanted && about && SUBJECTS.hasOwnProperty(wanted)) about.value = wanted;
-  } catch (e) { /* no URLSearchParams, or a blocked location: keep the default */ }
+    if (wanted && about && about.querySelector('option[value="' + wanted + '"]')) {
+      about.value = wanted;
+    }
+  } catch (e) { /* keep the default */ }
 
-  form.addEventListener("submit", function (ev) {
+  function say(text) { if (note) note.textContent = text; }
+
+  function busy(on) {
+    if (!button) return;
+    button.disabled = on;
+    button.textContent = on ? "Sending…" : "Send →";
+  }
+
+  form.addEventListener("submit", async function (ev) {
     ev.preventDefault();
 
-    var topic = (document.getElementById("about") || {}).value || "other";
-    var agents = ((document.getElementById("agents") || {}).value || "").trim();
-    var message = ((document.getElementById("message") || {}).value || "").trim();
-    var note = document.getElementById("form-note");
+    var payload = {
+      about: (document.getElementById("about") || {}).value || "other",
+      email: ((document.getElementById("email") || {}).value || "").trim(),
+      agents: ((document.getElementById("agents") || {}).value || "").trim(),
+      message: ((document.getElementById("message") || {}).value || "").trim(),
+      "cf-turnstile-response": (form.querySelector('[name="cf-turnstile-response"]') || {}).value,
+    };
 
-    if (!message) {
-      if (note) note.textContent = "Add a message first, then this will open your mail app.";
-      var box = document.getElementById("message");
-      if (box) box.focus();
+    if (!payload.message) { say("Add a message first."); return; }
+    if (!payload.email) { say("Add an email so we can reply."); return; }
+    if (!payload["cf-turnstile-response"]) {
+      say("Wait for the challenge to finish, then send.");
       return;
     }
 
-    var body = message;
-    if (agents) body += "\n\n---\nAgents: " + agents;
+    busy(true);
+    say("Sending…");
+    try {
+      var res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      var data = await res.json().catch(function () { return {}; });
 
-    var href = "mailto:hello@ranwhat.com"
-      + "?subject=" + encodeURIComponent(SUBJECTS[topic] || SUBJECTS.other)
-      + "&body=" + encodeURIComponent(body);
-
-    /* Some clients truncate very long mailto URLs; say so rather than
-       silently losing the tail of someone's message. */
-    if (href.length > 1900 && note) {
-      note.textContent = "That is long enough that some mail apps will cut it. "
-        + "Consider writing to hello@ranwhat.com directly.";
+      if (res.ok && data.ok) {
+        form.innerHTML =
+          '<p class="sent">Sent. We read everything, and a day or two is a ' +
+          'normal reply time.</p>';
+        return;
+      }
+      say(data.error || "That did not send. Write to hello@ranwhat.com instead.");
+    } catch (e) {
+      say("That did not send, which may be the network. Write to hello@ranwhat.com instead.");
+    } finally {
+      busy(false);
+      /* A used token is not accepted twice, so get a fresh one for a retry. */
+      if (window.turnstile) { try { window.turnstile.reset(); } catch (e) {} }
     }
+  });
 
-    location.href = href;
+  form.addEventListener("input", function () {
+    if (note && note.textContent !== RESTING) say(RESTING);
   });
 })();

@@ -24,6 +24,7 @@
 <meta name="twitter:description" content="Questions about Team or Evidence, a bug in the tool, or anything else. Composes mail in your own client; the site has no form backend.">
 <link rel="preload" href="/fonts/archivo-d5751e0f.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/ibmplexmono-01c04f4d.woff2" as="font" type="font/woff2" crossorigin>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -59,12 +60,11 @@
   <div class="shell band split">
     <div class="marginal">01 / Write</div>
     <div>
-      <h2>No form backend, by design.</h2>
+      <h2>Straight to an inbox, nothing in between.</h2>
       <p class="lede">
-        This composes the message in your own mail app. Nothing is posted to a
-        server, nothing is logged here, and there is no third party in the
-        middle. It would be odd to run a contact form on a site whose whole
-        argument is that data should stay where it was made.
+        This posts to a function on this domain, which checks you are human and
+        emails the message to us. No third-party form service, nothing stored
+        here, and no mail client to open.
       </p>
 
       <form class="form" id="contact-form" novalidate>
@@ -75,6 +75,10 @@
           <option value="bug">Something the tool got wrong</option>
           <option value="other">Something else</option>
         </select>
+
+        <label for="email">Your email</label>
+        <input id="email" name="email" type="email" autocomplete="email"
+               placeholder="so we can reply" required>
 
         <label for="agents">How many agents, roughly? <span class="opt">optional</span></label>
         <input id="agents" name="agents" type="text" inputmode="numeric"
