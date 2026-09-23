@@ -90,6 +90,46 @@ def _fingerprint(value):
     return hashlib.sha256(value.encode("utf-8", "replace")).hexdigest()[:12]
 
 
+# A secret is a literal. These are all things that merely *refer* to one, or
+# compute one, or describe one -- and on a working machine they outnumbered
+# real credentials roughly two to one.
+_CODE = re.compile(r"[(){}\[\]`<>|\\]|=>|\$\{|\$\(")
+_REFERENCE = re.compile(
+    r"^(?:process\.env|os\.environ|import\.meta|this\.|self\.|window\.|"
+    r"globalThis\.|config\.|env\.|Deno\.env|ENV\[)", re.I)
+_PATHLIKE = re.compile(r"^(?:[~.]?/|[A-Za-z]:\\)")
+_REGEXISH = re.compile(r"\.\*|\\[dwsb]|\{\d+(?:,\d*)?\}|\[[A-Za-z0-9-]+\]")
+_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_MASKED = re.compile(r"\*{3,}|x{6,}|\u2026|_{6,}")
+
+
+def _entropy(value):
+    """Shannon entropy per character. Generated credentials sit well above
+    three bits; words, names and code sit below."""
+    if not value:
+        return 0.0
+    import math
+    counts = {}
+    for ch in value:
+        counts[ch] = counts.get(ch, 0) + 1
+    n = float(len(value))
+    return -sum((c / n) * math.log(c / n, 2) for c in counts.values())
+
+
+def _looks_computed(value):
+    """True when the value is code, a reference, a path or a pattern rather
+    than a literal credential."""
+    v = value.strip().strip("\"'")
+    if _CODE.search(v) or _REFERENCE.match(v) or _PATHLIKE.match(v):
+        return True
+    if _REGEXISH.search(v) or _MASKED.search(v):
+        return True
+    # A bare identifier with no digits is a variable name, not a secret.
+    if _IDENTIFIER.match(v) and not any(c.isdigit() for c in v) and len(v) < 40:
+        return True
+    return False
+
+
 def _is_placeholder(value):
     v = value.strip().strip("\"'")
     if len(v) < 8:
@@ -99,6 +139,8 @@ def _is_placeholder(value):
     if v.startswith("<ranwhat:redacted:"):
         return True
     if len(set(v)) <= 2:                      # aaaaaaaa, ********
+        return True
+    if _looks_computed(v):
         return True
     return False
 
@@ -123,6 +165,8 @@ def find_secrets(text):
             continue
         if _is_placeholder(value):
             continue
+        if _entropy(value) < 3.0 and not any(p.search(value) for p in _SHAPES):
+            continue          # prose or a word, not a generated credential
         found.append((value, key))
 
     for m in _CONN.finditer(text):

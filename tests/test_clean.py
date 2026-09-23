@@ -51,6 +51,51 @@ class Detection(unittest.TestCase):
         self.assertEqual(n("PASSWORD=abc"), 0)
 
 
+class OnlyLiteralsAreSecrets(unittest.TestCase):
+    """Every case here came from a machine with a real agent history, where
+    this rule reported 185 secrets and roughly two thirds were code."""
+
+    def test_environment_references_are_not_values(self):
+        for text in ("JWT_SECRET=process.env.JWT_ACCESS_SECRET",
+                     "password: process.env.DB_PASSWORD",
+                     "secret: os.environ['JWT_SECRET']",
+                     "apiKey: import.meta.env.VITE_KEY"):
+            self.assertEqual(n(text), 0, text)
+
+    def test_function_calls_are_not_values(self):
+        for text in ("const secret = crypto.randomBytes(32)",
+                     "token = randomBytes(32).toString('hex')",
+                     "secret: Buffer.from(raw)",
+                     "token: headers.auth(h)",
+                     "TOKEN=$(printf '%s' $x | cli)"):
+            self.assertEqual(n(text), 0, text)
+
+    def test_templates_regexes_and_paths(self):
+        for text in ("token = `${env}-session-id`",
+                     "pattern: token=[A-Z]{20}",
+                     "DATABASE_URL=.*|postgres|mysql|",
+                     "PWD=/Users/mikica/Desktop/cistimo"):
+            self.assertEqual(n(text), 0, text)
+
+    def test_identifiers_and_already_masked_values(self):
+        for text in ("token: tokenAddress", "auth: Authorization",
+                     "Token=gho_****************************"):
+            self.assertEqual(n(text), 0, text)
+
+    def test_low_entropy_prose_is_not_a_secret(self):
+        self.assertEqual(n("bad_credentials: rate limit exceeded"), 0)
+
+    def test_real_credentials_still_found(self):
+        for text in ("DB_PASSWORD=kzN8fJx2mQ4vB7nR5tY9wL3pZ6aS1dF0c2e=",
+                     "SESSION_SECRET=be1c4f7a9d2e6b8c0f3a5d7e9b1c4f6a8d0e2b5c7f9a1d3e6b8c0f2a4d5e6",
+                     "APP_KEY=base64:Zm9vYmFyYmF6cXV4MTIzNDU2Nzg5MGFiY2RlZmdoaQ==",
+                     "RENDER_API_KEY=zGK7pQ2mV9xR4tN8wL1bY6cF3jH5dS0aE60",
+                     "AWS_ACCESS_KEY_ID=AKIA4TRUE7KEYX9QZ2WB",
+                     "TURNSTILE_SECRET=0x4AAAAAAABkMYinukE8nzYSjRt2wLpF3Lc",
+                     "DATABASE_URL=postgresql://buzz:Xk9mPq2vRt7@db.internal:5432/app"):
+            self.assertEqual(n(text), 1, text)
+
+
 def _transcript(body):
     root = tempfile.mkdtemp(prefix="clean-t-")
     d = os.path.join(root, "proj")
