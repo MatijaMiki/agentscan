@@ -1,0 +1,13 @@
+The typefaces in this directory are redistributed under the SIL Open Font
+License, Version 1.1, which permits it.
+
+  Archivo        Copyright (c) Omnibus-Type
+                 https://github.com/Omnibus-Type/Archivo
+  IBM Plex Mono  Copyright (c) IBM Corp.
+                 https://github.com/IBM/plex
+
+Full licence text: https://openfontlicense.org/open-font-license-official-text/
+
+The files themselves are the woff2 subsets Google Fonts builds (latin and
+latin-ext). They are served from this origin rather than fonts.gstatic.com so
+that no visitor's IP address reaches a third party in order to render a page.
