@@ -1,23 +1,25 @@
 :root{
-  /* Light: paper with a violet cast. The accent is the brand; severity
-     stays semantic, because a report has to read at a glance. */
-  --ground:#faf9fe; --surface:#ffffff; --raise:#f4f2fc;
-  --ink:#17132a; --ink-2:#3b3552; --muted:#5f5878; --faint:#8b85a3;
-  --rule:#e3dff1; --rule-2:#eeebf8;
-  --brand:#5b21b6; --brand-bg:#f1ecfd;
-  --crit:#b02a1e; --crit-bg:#fbecea;
-  --warn:#8a5a00; --warn-bg:#fbf2e0;
-  --ok:#1b6b4a;   --ok-bg:#e8f2ec;
-  --info:#5b21b6;  --info-bg:#f1ecfd;
-  --focus:#5b21b6;
+  /* Light: cool paper. There is no brand accent -- the only colour on the
+     page is semantic severity, which is the same restraint the tool applies
+     to its own reports. --brand exists so the wordmark and links have one
+     token to follow, and it points at the same red. */
+  --ground:#edeff1; --surface:#ffffff; --raise:#f7f8f9;
+  --ink:#12171c; --ink-2:#39434e; --muted:#5a6672; --faint:#8b95a1;
+  --rule:#d5dae0; --rule-2:#e4e8ec;
+  --brand:#b02a1e; --brand-bg:#f7e9e7;
+  --crit:#b02a1e; --crit-bg:#f7e9e7;
+  --warn:#8a5a00; --warn-bg:#f8f0df;
+  --ok:#1b6b4a;   --ok-bg:#e6f0eb;
+  --info:#2a4f7c;  --info-bg:#e8eef5;
+  --focus:#2a4f7c;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --ground:#0E1318; --surface:#151B21; --raise:#1C242C;
     --ink:#e9edf0; --ink-2:#c2cad2; --muted:#8e99a4; --faint:#6a747e;
     --rule:#242C34; --rule-2:#1A2127;
-    --brand:#c4a8ff; --brand-bg:#1e1733;
-    --brand:#c4a8ff; --brand-bg:#1e1733;
+    --brand:#ea8471; --brand-bg:#2a1714;
+    --brand:#ea8471; --brand-bg:#2a1714;
   --crit:#ea8471; --crit-bg:#2a1714;
     --warn:#d7a44f; --warn-bg:#271e10;
     --ok:#72c69d;   --ok-bg:#12241c;
@@ -29,7 +31,7 @@
   --ground:#0E1318; --surface:#151B21; --raise:#1C242C;
   --ink:#e9edf0; --ink-2:#c2cad2; --muted:#8e99a4; --faint:#6a747e;
   --rule:#242C34; --rule-2:#1A2127;
-  --brand:#c4a8ff; --brand-bg:#1e1733;
+  --brand:#ea8471; --brand-bg:#2a1714;
   --crit:#ea8471; --crit-bg:#2a1714;
   --warn:#d7a44f; --warn-bg:#271e10;
   --ok:#72c69d;   --ok-bg:#12241c;
