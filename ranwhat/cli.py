@@ -123,10 +123,33 @@ def _emit(result, args):
         print("  html report: %s\n" % args.html)
 
 
+OVERVIEW = """
+  ranwhat  \u00b7 find out what your AI agents actually did
+
+  watch    what your agents already ran on this machine
+  clean    credentials sitting in plaintext in agent transcripts
+  scan     the authority a set of credentials carries
+  demo     see the output without setting anything up
+
+  Start here:
+    ranwhat demo
+    ranwhat watch --days 30
+
+  Everything runs locally. No account, and nothing is transmitted.
+  Full options: ranwhat --help
+"""
+
+
+def _overview(parser):
+    """Shown for a bare `ranwhat`, instead of an argparse usage error."""
+    sys.stdout.write(OVERVIEW.lstrip("\n"))
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="ranwhat",
                                 description="Score an AI agent's authority, observability and reversibility.")
-    p.add_argument("command", choices=["demo", "scan", "live", "watch", "clean"])
+    p.add_argument("command", nargs="?",
+                   choices=["demo", "scan", "live", "watch", "clean"])
     p.add_argument("profile", nargs="?", help="path to a profile JSON")
     p.add_argument("--json", action="store_true", help="emit raw JSON")
     p.add_argument("--html", metavar="PATH", help="also write an HTML report")
@@ -161,6 +184,11 @@ def main(argv=None):
                    help="clean: report and exit instead of opening the review "
                         "session")
     args = p.parse_args(argv)
+
+    if args.command is None:
+        _overview(p)
+        return 0
+
 
     if args.days is not None and args.days < 1:
         p.error("--days must be at least 1")
