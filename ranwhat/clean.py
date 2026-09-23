@@ -71,6 +71,21 @@ _PLACEHOLDER = re.compile(
     re.I)
 
 
+# A string can only hold a secret if it has an assignment, a connection
+# string, or a known credential prefix. Most of a transcript is prose, and
+# checking this first skips the regex battery on the overwhelming majority.
+_CHEAP = ("=", ":", "sk_", "rk_", "sk-", "ghp_", "github_pat_", "xox",
+          "AKIA", "AC", "SG.", "eyJ", "BEGIN")
+
+# A single string longer than this is a data blob -- a build log, a base64
+# payload, a file dump. Secrets in the first megabyte are still found.
+MAX_STRING = 1_000_000
+
+
+def _worth_scanning(text):
+    return any(token in text for token in _CHEAP)
+
+
 def _fingerprint(value):
     return hashlib.sha256(value.encode("utf-8", "replace")).hexdigest()[:12]
 
@@ -91,8 +106,10 @@ def _is_placeholder(value):
 def find_secrets(text):
     """Return [(secret_value, label)] found in a blob of text."""
     found = []
-    if not text:
+    if not text or not _worth_scanning(text):
         return found
+    if len(text) > MAX_STRING:
+        text = text[:MAX_STRING]
 
     for pattern in _SHAPES:
         for m in pattern.finditer(text):
@@ -212,10 +229,18 @@ def _backup(path):
     return dest
 
 
-def scan(root=CLAUDE_PROJECTS, since_days=None, apply=False):
-    """Scan every transcript. Returns (merged_findings, files_scanned, files_changed)."""
+def scan(root=CLAUDE_PROJECTS, since_days=None, apply=False, progress=None):
+    """Scan every transcript. Returns (merged_findings, files_scanned, files_changed).
+
+    `progress` is called with (index, total, path) before each file. A large
+    history takes a couple of minutes, and a run that prints nothing for that
+    long is indistinguishable from one that has hung.
+    """
     merged, scanned, changed_files = {}, 0, []
-    for path in discover(root, since_days):
+    paths = discover(root, since_days)
+    for index, path in enumerate(paths, 1):
+        if progress:
+            progress(index, len(paths), path)
         scanned += 1
         findings, changed = scan_file(path, apply=apply)
         if changed:

@@ -165,8 +165,18 @@ def main(argv=None):
         p.error("--window-days must be at least 1")
 
     if args.command == "clean":
+        def _progress(i, total, path):
+            if args.json:
+                return
+            sys.stderr.write("\r  scanning %d/%d %-34s" % (
+                i, total, os.path.basename(os.path.dirname(path))[-34:]))
+            sys.stderr.flush()
+
         findings, scanned, changed = clean_mod.scan(
-            root=args.root, since_days=args.days, apply=args.apply)
+            root=args.root, since_days=args.days, apply=args.apply,
+            progress=_progress)
+        if not args.json:
+            sys.stderr.write("\r" + " " * 60 + "\r")
         if args.json:
             print(json.dumps({"scanned": scanned, "applied": args.apply,
                               "changed": changed,
