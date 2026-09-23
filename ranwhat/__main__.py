@@ -1,4 +1,4 @@
-"""Allow `python -m agentscan` as well as the installed `agentscan` script."""
+"""Allow `python -m ranwhat` as well as the installed `ranwhat` script."""
 import sys
 
 from .cli import main

@@ -12,9 +12,9 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agentscan import watch
-from agentscan.html_report import write_html
-from agentscan.score import scan
+from ranwhat import watch
+from ranwhat.html_report import write_html
+from ranwhat.score import scan
 
 
 def _result():
@@ -53,15 +53,15 @@ class CredentialsNeedNotTouchArgv(unittest.TestCase):
         stripe = None
 
     def test_environment_variable_is_used(self):
-        from agentscan.cli import _token
-        os.environ["AGENTSCAN_STRIPE_TOKEN"] = "from-env"
+        from ranwhat.cli import _token
+        os.environ["RANWHAT_STRIPE_TOKEN"] = "from-env"
         try:
             self.assertEqual(_token(self._Args(), "stripe"), "from-env")
         finally:
-            os.environ.pop("AGENTSCAN_STRIPE_TOKEN", None)
+            os.environ.pop("RANWHAT_STRIPE_TOKEN", None)
 
     def test_env_indirection_form(self):
-        from agentscan.cli import _token
+        from ranwhat.cli import _token
         args = self._Args()
         args.stripe = "env:MY_SECRET_VAR"
         os.environ["MY_SECRET_VAR"] = "indirect"
@@ -71,7 +71,7 @@ class CredentialsNeedNotTouchArgv(unittest.TestCase):
             os.environ.pop("MY_SECRET_VAR", None)
 
     def test_missing_indirect_variable_fails_loudly(self):
-        from agentscan.cli import _token
+        from ranwhat.cli import _token
         args = self._Args()
         args.stripe = "env:DEFINITELY_NOT_SET_XYZ"
         with self.assertRaises(SystemExit):
@@ -155,7 +155,7 @@ class TempCopiesAreCleanedUp(unittest.TestCase):
         before = set(os.listdir(tempfile.gettempdir()))
         watch.scan_openclaw(state_dir=root)
         after = set(os.listdir(tempfile.gettempdir()))
-        self.assertFalse([x for x in after - before if x.startswith("agentscan-")])
+        self.assertFalse([x for x in after - before if x.startswith("ranwhat-")])
 
 
 if __name__ == "__main__":

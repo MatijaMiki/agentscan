@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agentscan"
+name = "ranwhat"
 version = "0.1.0"
 description = "Flight recorder and authority scanner for AI agents. Reads locally, transmits nothing."
 readme = "README.md"
@@ -30,16 +30,16 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/MatijaMiki/agentscan"
-Source = "https://github.com/MatijaMiki/agentscan"
-Issues = "https://github.com/MatijaMiki/agentscan/issues"
+Homepage = "https://github.com/MatijaMiki/ranwhat"
+Source = "https://github.com/MatijaMiki/ranwhat"
+Issues = "https://github.com/MatijaMiki/ranwhat/issues"
 
 [project.scripts]
-agentscan = "agentscan.cli:main"
+ranwhat = "ranwhat.cli:main"
 
 [tool.setuptools]
-packages = ["agentscan"]
+packages = ["ranwhat"]
 include-package-data = false
 
 [tool.setuptools.package-data]
-agentscan = ["demo/*.json"]
+ranwhat = ["demo/*.json"]

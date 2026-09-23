@@ -15,7 +15,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agentscan import watch
+from ranwhat import watch
 
 
 def make_db(rows, table="weird_entry_log", body="payload_blob",

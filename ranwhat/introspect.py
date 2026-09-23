@@ -26,7 +26,7 @@ def _request(url, method="GET", headers=None, data=None):
     if data is not None:
         body = urllib.parse.urlencode(data).encode()
     req = urllib.request.Request(url, data=body, method=method)
-    req.add_header("User-Agent", "agentscan/0.1 (read-only introspection)")
+    req.add_header("User-Agent", "ranwhat/0.1 (read-only introspection)")
     for k, v in (headers or {}).items():
         req.add_header(k, v)
     try:

@@ -12,7 +12,7 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-import agentscan
+import ranwhat
 
 
 def pyproject():
@@ -25,10 +25,10 @@ class Metadata(unittest.TestCase):
     def test_version_matches_package(self):
         declared = re.search(r'^version\s*=\s*"([^"]+)"', pyproject(),
                              re.M).group(1)
-        self.assertEqual(declared, agentscan.__version__)
+        self.assertEqual(declared, ranwhat.__version__)
 
     def test_console_script_target_is_importable(self):
-        target = re.search(r'^agentscan\s*=\s*"([^"]+)"', pyproject(),
+        target = re.search(r'^ranwhat\s*=\s*"([^"]+)"', pyproject(),
                            re.M).group(1)
         module, _, attr = target.partition(":")
         mod = __import__(module, fromlist=[attr])
@@ -44,12 +44,12 @@ class Metadata(unittest.TestCase):
     def test_bundled_demo_data_is_inside_the_package(self):
         """It previously installed to site-packages/demo/, a top-level
         directory that would collide with any other package shipping one."""
-        self.assertIn('agentscan = ["demo/*.json"]', pyproject())
+        self.assertIn('ranwhat = ["demo/*.json"]', pyproject())
         self.assertTrue(os.path.isfile(
-            os.path.join(ROOT, "agentscan", "demo", "support-copilot.json")))
+            os.path.join(ROOT, "ranwhat", "demo", "support-copilot.json")))
 
     def test_demo_loads_through_the_package(self):
-        from agentscan.cli import _bundled
+        from ranwhat.cli import _bundled
         self.assertEqual(_bundled("support-copilot.json")["agent"],
                          "support-copilot")
 

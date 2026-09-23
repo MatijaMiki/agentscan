@@ -1,16 +1,16 @@
-# agentscan
+# ranwhat
 
 **A flight recorder for AI agents, and a scanner for the authority they hold.**
 Reads locally. Transmits nothing. No dependencies.
 
-Your coding agent has your shell, your keys and your repo. `agentscan` reads
+Your coding agent has your shell, your keys and your repo. `ranwhat` reads
 what it actually ran and surfaces the handful of irreversible actions worth
 knowing about.
 
 ```
-$ agentscan watch --days 90
+$ ranwhat watch --days 90
 
-  agentscan watch  · local agent flight recorder
+  ranwhat watch  · local agent flight recorder
   --------------------------------------------------------------
   4 source(s) over 90 days
 
@@ -32,13 +32,13 @@ $ agentscan watch --days 90
 ## Install
 
 ```bash
-uvx --from git+https://github.com/MatijaMiki/agentscan agentscan watch
+uvx --from git+https://github.com/MatijaMiki/ranwhat ranwhat watch
 ```
 
 Or put it on your path:
 
 ```bash
-pipx install git+https://github.com/MatijaMiki/agentscan
+pipx install git+https://github.com/MatijaMiki/ranwhat
 ```
 
 Python 3.9+. Installing with plain `pip`? Upgrade it first — the pip macOS
@@ -47,7 +47,7 @@ named `UNKNOWN-0.0.0` that installs fine and gives you no command.
 
 ## Two tools
 
-### `agentscan watch` — what your agents did
+### `ranwhat watch` — what your agents did
 
 Reads transcripts your agents already wrote to disk. No wrapper, no proxy,
 nothing in your critical path.
@@ -62,12 +62,12 @@ publishing, cloud destruction, financial API calls, log tampering, destructive
 git, recursive deletion, exfiltration-shaped pipes.
 
 ```bash
-agentscan watch --days 30
-agentscan watch --source openclaw
-agentscan watch --json
+ranwhat watch --days 30
+ranwhat watch --source openclaw
+ranwhat watch --json
 ```
 
-### `agentscan scan` — what they're allowed to do next
+### `ranwhat scan` — what they're allowed to do next
 
 Reads the credentials an agent holds, read-only, and scores the three things
 that determine exposure.
@@ -82,10 +82,10 @@ Observability vetoes the overall verdict. An agent that cannot reconstruct its
 own tool calls is indistinguishable from the worst case.
 
 ```bash
-agentscan demo                                # see it on a worked example
-agentscan scan profile.json --html report.html
-agentscan live --github "$GH_TOKEN"           # read-only introspection
-agentscan scan profile.json --pull-usage --stripe "$STRIPE_KEY"
+ranwhat demo                                # see it on a worked example
+ranwhat scan profile.json --html report.html
+ranwhat live --github "$GH_TOKEN"           # read-only introspection
+ranwhat scan profile.json --pull-usage --stripe "$STRIPE_KEY"
 ```
 
 Capability catalogues for Google, GitHub, Slack, Stripe and AWS. Unrecognised
@@ -124,11 +124,11 @@ readable by every user on the machine through the process table, and is written
 to your shell history.
 
 ```bash
-export AGENTSCAN_STRIPE_TOKEN="rk_live_..."
-agentscan scan profile.json --pull-usage
+export RANWHAT_STRIPE_TOKEN="rk_live_..."
+ranwhat scan profile.json --pull-usage
 ```
 
-`export` it first — `VAR=x agentscan ...` on one line still puts the value in
+`export` it first — `VAR=x ranwhat ...` on one line still puts the value in
 that shell's own command line. `--stripe env:MY_VAR` and `--stripe -` (read one
 line from stdin) also work. Passing a token as a flag value still works and
 prints a warning saying why it shouldn't.

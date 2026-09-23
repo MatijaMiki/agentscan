@@ -184,7 +184,7 @@ def build_html(result):
 <style>{css}</style></head>
 <body><div class="wrap">
 <header>
-  <div class="brand">agentscan <span>· agent authority &amp; insurability</span></div>
+  <div class="brand">ranwhat <span>· agent authority &amp; insurability</span></div>
   <h1>{agent}</h1>
   <div class="meta">Generated {now} · read-only credential introspection</div>
 </header>
@@ -251,13 +251,13 @@ def write_html(result, path):
         fd = os.open(path, flags, 0o600)
     except OSError as e:
         if getattr(e, "errno", None) in (40, 62):      # ELOOP
-            raise SystemExit("agentscan: %s is a symlink; refusing to write "
+            raise SystemExit("ranwhat: %s is a symlink; refusing to write "
                              "through it" % path)
-        raise SystemExit("agentscan: cannot write %s (%s)" % (path, e.strerror))
+        raise SystemExit("ranwhat: cannot write %s (%s)" % (path, e.strerror))
     try:
         os.fchmod(fd, 0o600)
         with os.fdopen(fd, "w") as fh:
             fh.write(build_html(result))
     except OSError as e:
-        raise SystemExit("agentscan: cannot write %s (%s)" % (path, e.strerror))
+        raise SystemExit("ranwhat: cannot write %s (%s)" % (path, e.strerror))
     return path

@@ -513,7 +513,7 @@ def scan_all(root=CLAUDE_PROJECTS, since_days=None, limit=None):
 def render(records, scanned, days):
     from .report import BOLD, DIM, RED, YEL, CYA, GRN
     colour = {CRITICAL: RED, HIGH: YEL, MEDIUM: CYA}
-    L = ["", BOLD("  agentscan watch  ") + DIM("· local agent flight recorder"),
+    L = ["", BOLD("  ranwhat watch  ") + DIM("· local agent flight recorder"),
          DIM("  " + "-" * 62),
          "  %d source(s) over %d days" % (scanned, days), ""]
     if not records:
@@ -584,7 +584,7 @@ def _open_readonly(path):
     except sqlite3.Error:
         pass
     # Live WAL: work on a copy rather than touching the agent's database.
-    tmp = tempfile.mkdtemp(prefix="agentscan-")
+    tmp = tempfile.mkdtemp(prefix="ranwhat-")
     copy = os.path.join(tmp, os.path.basename(path))
     try:
         shutil.copy2(path, copy)

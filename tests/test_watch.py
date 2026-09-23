@@ -11,7 +11,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agentscan import watch
+from ranwhat import watch
 
 
 def fires(command):
@@ -126,7 +126,7 @@ class DeletionSeverityFollowsTheTarget(unittest.TestCase):
         self.assertIsNone(self.severity("rm -rf build dist 2>/dev/null"))
 
     def test_generated_directories_matched_by_suffix(self):
-        self.assertIsNone(self.severity("rm -rf agentscan.egg-info"))
+        self.assertIsNone(self.severity("rm -rf ranwhat.egg-info"))
         self.assertIsNone(self.severity("rm -rf build foo.egg-info 2>/dev/null"))
 
 

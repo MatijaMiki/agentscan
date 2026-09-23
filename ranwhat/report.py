@@ -26,7 +26,7 @@ def _bar(n, width=24):
 def render(result):
     L = []
     L.append("")
-    L.append(BOLD("  agentscan  ") + DIM("· agent authority & insurability"))
+    L.append(BOLD("  ranwhat  ") + DIM("· agent authority & insurability"))
     L.append(DIM("  " + "─" * 62))
     L.append("  agent: " + BOLD(result["agent"]))
     L.append("")

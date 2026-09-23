@@ -11,9 +11,9 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agentscan import watch
-from agentscan.html_report import write_html
-from agentscan.score import ProfileError, scan
+from ranwhat import watch
+from ranwhat.html_report import write_html
+from ranwhat.score import ProfileError, scan
 
 
 class RemediationIsVisible(unittest.TestCase):

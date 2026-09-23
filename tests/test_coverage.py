@@ -11,8 +11,8 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agentscan import usage
-from agentscan.score import scan
+from ranwhat import usage
+from ranwhat.score import scan
 
 
 def _finding(result, fragment):
@@ -99,12 +99,12 @@ class ReportConsistency(unittest.TestCase):
 class Classification(unittest.TestCase):
 
     def test_narrow_scope_not_widened_to_wildcard(self):
-        from agentscan.catalog import lookup
+        from ranwhat.catalog import lookup
         self.assertEqual(lookup("aws", "s3:ListBucket")["authority"], "read")
         self.assertEqual(lookup("aws", "s3:*")["authority"], "destructive")
 
     def test_unknown_scope_flagged_not_assumed_safe(self):
-        from agentscan.catalog import lookup
+        from ranwhat.catalog import lookup
         e = lookup("notion", "databases:delete")
         self.assertFalse(e["known"])
         self.assertEqual(e["authority"], "destructive")
