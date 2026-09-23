@@ -9,7 +9,7 @@
   /* Polaroid spectrum: red, orange, yellow, green, blue. Kept in the
      page's own register rather than fully saturated, so it reads as part
      of the design instead of pasted on. */
-  --sp1:#c03a26; --sp2:#cf7326; --sp3:#c9a227; --sp4:#3e9468; --sp5:#2f6fa8;
+  --sp1:#CC3429; --sp2:#D9751E; --sp3:#D1A821; --sp4:#37A35B; --sp5:#2B78B2;
   --crit:#b02a1e; --crit-bg:#f7e9e7;
   --warn:#8a5a00; --warn-bg:#f8f0df;
   --ok:#1b6b4a;   --ok-bg:#e6f0eb;
@@ -22,7 +22,7 @@
     --ink:#e9edf0; --ink-2:#c2cad2; --muted:#8e99a4; --faint:#6a747e;
     --rule:#242C34; --rule-2:#1A2127;
     --brand:#ea8471; --brand-bg:#2a1714;
-    --sp1:#ea8471; --sp2:#e0965c; --sp3:#d7b256; --sp4:#72c69d; --sp5:#8db4dd;
+    --sp1:#EB4D42; --sp2:#ED9134; --sp3:#E6CA40; --sp4:#54C776; --sp5:#59A4DE;
     --crit:#ea8471; --crit-bg:#2a1714;
     --warn:#d7a44f; --warn-bg:#271e10;
     --ok:#72c69d;   --ok-bg:#12241c;
@@ -35,7 +35,7 @@
   --ink:#e9edf0; --ink-2:#c2cad2; --muted:#8e99a4; --faint:#6a747e;
   --rule:#242C34; --rule-2:#1A2127;
   --brand:#ea8471; --brand-bg:#2a1714;
-  --sp1:#ea8471; --sp2:#e0965c; --sp3:#d7b256; --sp4:#72c69d; --sp5:#8db4dd;
+  --sp1:#EB4D42; --sp2:#ED9134; --sp3:#E6CA40; --sp4:#54C776; --sp5:#59A4DE;
   --crit:#ea8471; --crit-bg:#2a1714;
   --warn:#d7a44f; --warn-bg:#271e10;
   --ok:#72c69d;   --ok-bg:#12241c;
@@ -59,12 +59,13 @@ section{border-top:1px solid var(--rule)}
 .band{padding-block:72px}
 .split{display:grid;grid-template-columns:172px minmax(0,1fr);gap:40px;align-items:start}
 .marginal::before{
-  content:"";position:absolute;inset:0 0 auto;height:3px;
+  content:"";position:absolute;inset:0 0 auto;height:4px;
   background:linear-gradient(to right,
     var(--sp1) 0 20%, var(--sp2) 20% 40%, var(--sp3) 40% 60%,
     var(--sp4) 60% 80%, var(--sp5) 80% 100%);
 }
 .marginal{
+  min-width:132px;
   font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:11px;
   letter-spacing:.11em;text-transform:uppercase;color:var(--faint);
   padding-top:9px;display:inline-block;position:relative;
@@ -84,12 +85,12 @@ header{
 /* A hairline of the same spectrum sits under the header and above the
    footer, so the motif brackets every page. */
 header::after,footer::before{
-  content:"";display:block;height:2px;
+  content:"";display:block;height:3px;
   background:linear-gradient(to right,
     var(--sp1) 0 20%, var(--sp2) 20% 40%, var(--sp3) 40% 60%,
     var(--sp4) 60% 80%, var(--sp5) 80% 100%);
 }
-header::after{position:absolute;left:0;right:0;bottom:-2px}
+header::after{position:absolute;left:0;right:0;bottom:-3px}
 .nav{display:flex;align-items:center;gap:26px;height:58px}
 .wordmark{font-family:"IBM Plex Mono",Menlo,monospace;font-weight:600;
   font-size:15px;letter-spacing:-.03em;text-decoration:none;white-space:nowrap}
