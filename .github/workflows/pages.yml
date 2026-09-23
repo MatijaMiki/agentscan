@@ -24,6 +24,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+
+      # Cloudflare caches styles.css and copy.js at the edge for hours, so a
+      # deploy would ship new HTML against a stale stylesheet until someone
+      # purged by hand. Stamping the content hash into the URL means a changed
+      # file is a new URL, which no cache can serve stale.
+      - name: Fingerprint static assets
+        run: |
+          set -euo pipefail
+          for asset in styles.css copy.js; do
+            hash=$(sha256sum "site/$asset" | cut -c1-10)
+            grep -rlF "/$asset\"" site --include='*.html' \
+              | xargs -r sed -i "s|/$asset\"|/$asset?v=$hash\"|g"
+            echo "$asset -> $hash"
+          done
+          echo '--- references after stamping:'
+          grep -ho '/styles\.css?v=[a-f0-9]*\|/copy\.js?v=[a-f0-9]*' site/*.html | sort | uniq -c
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
