@@ -155,8 +155,11 @@ def main(argv=None):
     p.add_argument("--source", action="append", choices=list(watch_mod.SOURCES),
                    help="watch: limit to a source (repeatable; default all)")
     p.add_argument("--apply", action="store_true",
-                   help="clean: actually mask the secrets found. Without this, "
-                        "clean only reports. Backups are written first.")
+                   help="clean: mask everything found without asking. Without "
+                        "it, clean reports and then opens a review session.")
+    p.add_argument("--no-interactive", action="store_true",
+                   help="clean: report and exit instead of opening the review "
+                        "session")
     args = p.parse_args(argv)
 
     if args.days is not None and args.days < 1:
@@ -184,6 +187,11 @@ def main(argv=None):
                                            for f in findings.values()]}, indent=2))
         else:
             print(clean_mod.render(findings, scanned, changed, args.apply))
+            # The findings are already in memory; making someone re-scan a
+            # large history just to act on what they read is wasteful.
+            if (findings and not args.apply and not args.no_interactive
+                    and sys.stdin.isatty()):
+                clean_mod.review(findings, scanned)
         return 0
 
     if args.command == "watch":

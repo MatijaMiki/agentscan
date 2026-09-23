@@ -99,8 +99,20 @@ your database password, your JWT secret, your provider tokens, in plaintext,
 in a file that is never rotated and gets read again by agents later.
 
 ```bash
-ranwhat clean               # report only
-ranwhat clean --apply       # mask them, backups written first
+ranwhat clean               # report, then open a review session
+ranwhat clean --apply       # mask everything without asking
+```
+
+Scanning a real history takes a while, so the session stays open on what it
+just found rather than making you re-scan to act on it:
+
+```
+ranwhat> list           the findings again
+ranwhat> show 3         where it appears, and what to roll it at
+ranwhat> mask 3         mask just that one
+ranwhat> mask all       mask everything listed
+ranwhat> keep 3         leave it alone
+ranwhat> rotate         what to rotate, grouped by provider
 ```
 
 **Redaction is not remediation.** Masking a value here does not un-expose it —

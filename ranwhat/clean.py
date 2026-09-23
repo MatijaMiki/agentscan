@@ -40,19 +40,26 @@ _SECRET_KEY = re.compile(
     re.I)
 
 # Credential shapes that are secrets wherever they appear.
-_SHAPES = [
-    re.compile(r"sk_live_[A-Za-z0-9]{12,}"),
-    re.compile(r"rk_live_[A-Za-z0-9]{12,}"),
-    re.compile(r"sk-[A-Za-z0-9_-]{20,}"),
-    re.compile(r"ghp_[A-Za-z0-9]{28,}"),
-    re.compile(r"github_pat_[A-Za-z0-9_]{40,}"),
-    re.compile(r"xox[baprs]-[A-Za-z0-9-]{20,}"),
-    re.compile(r"AKIA[0-9A-Z]{16}"),
-    re.compile(r"AC[0-9a-f]{32}"),                       # Twilio SID
-    re.compile(r"SG\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}"),
-    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]+?-----END [A-Z ]*PRIVATE KEY-----"),
-    re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"),  # JWT
+# Each shape is named, because "credential" tells you nothing about where to
+# go and roll it.
+_SHAPES_NAMED = [
+    (re.compile(r"sk_live_[A-Za-z0-9]{12,}"), "Stripe live secret key"),
+    (re.compile(r"rk_live_[A-Za-z0-9]{12,}"), "Stripe restricted key"),
+    (re.compile(r"sk-[A-Za-z0-9_-]{20,}"), "OpenAI/Anthropic-style API key"),
+    (re.compile(r"ghp_[A-Za-z0-9]{28,}"), "GitHub personal access token"),
+    (re.compile(r"github_pat_[A-Za-z0-9_]{40,}"), "GitHub fine-grained token"),
+    (re.compile(r"xox[baprs]-[A-Za-z0-9-]{20,}"), "Slack token"),
+    (re.compile(r"AKIA[0-9A-Z]{16}"), "AWS access key ID"),
+    (re.compile(r"ASIA[0-9A-Z]{16}"), "AWS temporary access key"),
+    (re.compile(r"AC[0-9a-f]{32}"), "Twilio account SID"),
+    (re.compile(r"SG\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}"), "SendGrid API key"),
+    (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]+?-----END [A-Z ]*PRIVATE KEY-----"),
+     "private key"),
+    (re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"),
+     "JSON Web Token"),
 ]
+
+_SHAPES = [pattern for pattern, _name in _SHAPES_NAMED]
 
 # KEY=value / "key": "value" assignments.
 _ASSIGN = re.compile(
@@ -153,11 +160,11 @@ def find_secrets(text):
     if len(text) > MAX_STRING:
         text = text[:MAX_STRING]
 
-    for pattern in _SHAPES:
+    for pattern, name in _SHAPES_NAMED:
         for m in pattern.finditer(text):
             value = m.group(0)
             if not _is_placeholder(value):
-                found.append((value, "credential"))
+                found.append((value, name))
 
     for m in _ASSIGN.finditer(text):
         key, value = m.group(2), m.group(4)
@@ -188,8 +195,12 @@ def find_secrets(text):
     return unique
 
 
-def _walk(node, collect, replace=None):
-    """Visit every string in a decoded JSON structure."""
+def _walk(node, collect, replace=None, only=None):
+    """Visit every string in a decoded JSON structure.
+
+    `only` limits masking to a set of fingerprints, so acting on one finding
+    does not rewrite every other secret in the same file.
+    """
     if isinstance(node, str):
         secrets = find_secrets(node)
         for value, label in secrets:
@@ -197,17 +208,19 @@ def _walk(node, collect, replace=None):
         if replace and secrets:
             out = node
             for value, _ in secrets:
+                if only is not None and _fingerprint(value) not in only:
+                    continue
                 out = out.replace(value, REDACTION % _fingerprint(value))
             return out
         return node
     if isinstance(node, list):
-        return [_walk(v, collect, replace) for v in node]
+        return [_walk(v, collect, replace, only) for v in node]
     if isinstance(node, dict):
-        return {k: _walk(v, collect, replace) for k, v in node.items()}
+        return {k: _walk(v, collect, replace, only) for k, v in node.items()}
     return node
 
 
-def scan_file(path, apply=False):
+def scan_file(path, apply=False, only=None):
     """Find (and optionally mask) secrets in one transcript.
 
     Returns (findings, changed). Each finding is a dict describing one
@@ -241,7 +254,7 @@ def scan_file(path, apply=False):
                 except ValueError:
                     rewritten.append(line)
                     continue
-                new = _walk(obj, collect, replace=apply)
+                new = _walk(obj, collect, replace=apply, only=only)
                 if apply and new != obj:
                     changed = True
                     rewritten.append(json.dumps(new, ensure_ascii=False) + "\n")
@@ -339,3 +352,159 @@ def render(findings, scanned, changed_files, applied):
     L += ["", DIM("  " + "-" * 62),
           DIM("  Read locally. Nothing was transmitted."), ""]
     return "\n".join(L)
+
+
+# ---------------------------------------------------------------------------
+# Interactive review.
+#
+# Scanning a real history takes a while, and the findings are already in
+# memory when the report prints. Making the user re-run the whole command to
+# act on what they just read wastes that, so the session stays open.
+# ---------------------------------------------------------------------------
+
+HELP = """  commands
+    list                  show the findings again
+    show <n>              where that secret appears, and what it looks like
+    mask <n>              mask just that one
+    mask all              mask everything listed
+    keep <n>              leave it alone, drop it from the list
+    rotate                what to rotate, grouped by provider
+    quit                  leave (nothing is masked unless you asked)
+"""
+
+# Which provider a key name points at, for the rotation checklist.
+_PROVIDER = [
+    (re.compile(r"aws|akia|asia", re.I), "AWS — IAM console, deactivate then delete the old key"),
+    (re.compile(r"openai|anthropic", re.I), "OpenAI / Anthropic — dashboard > API keys > revoke"),
+    (re.compile(r"slack", re.I), "Slack — api.slack.com > your app > reinstall"),
+    (re.compile(r"sendgrid", re.I), "SendGrid — Settings > API keys"),
+    (re.compile(r"json web token|jwt", re.I),
+     "JWT — signed by your own secret; rotate the signing secret"),
+    (re.compile(r"private key", re.I), "Private key — regenerate the pair and redeploy the public half"),
+    (re.compile(r"stripe|sk_live|rk_live", re.I), "Stripe — Developers > API keys > roll"),
+    (re.compile(r"twilio|^ac[0-9a-f]{32}", re.I), "Twilio — Console > Account > API keys"),
+    (re.compile(r"meta|facebook|pusher", re.I), "Meta / Pusher — app dashboard > regenerate"),
+    (re.compile(r"github|ghp_|gho_", re.I), "GitHub — Settings > Developer settings > tokens"),
+    (re.compile(r"render", re.I), "Render — Account settings > API keys"),
+    (re.compile(r"turnstile|cloudflare", re.I), "Cloudflare — dashboard > the relevant service"),
+    (re.compile(r"telegram", re.I), "Telegram — BotFather > /revoke"),
+    (re.compile(r"database_url|postgres|redis|db_password|mongo", re.I),
+     "Database — change the password, then update every consumer"),
+    (re.compile(r"jwt|session|cron|app_key|signing", re.I),
+     "Application secret — you generate this one; rotating invalidates sessions"),
+]
+
+
+def _provider_for(label):
+    for pattern, advice in _PROVIDER:
+        if pattern.search(label):
+            return advice
+    return "Unknown — find where this key lives and roll it there"
+
+
+def _numbered(findings):
+    return sorted(findings.values(), key=lambda x: -x["count"])
+
+
+def review(findings, scanned, stream=None):
+    """Interactive review of an already-completed scan. Returns the number of
+    files changed."""
+    import sys as _sys
+    from .report import BOLD, DIM, RED, GRN, YEL
+
+    out = stream or _sys.stdout
+    items = _numbered(findings)
+    changed_total = 0
+
+    def _print(text=""):
+        out.write(text + "\n")
+
+    _print(DIM("  %d finding(s). Type 'help' for commands." % len(items)))
+    _print()
+
+    while True:
+        try:
+            raw = input("  ranwhat> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            _print()
+            return changed_total
+        if not raw:
+            continue
+
+        parts = raw.split()
+        cmd, arg = parts[0].lower(), (parts[1] if len(parts) > 1 else None)
+
+        if cmd in ("quit", "exit", "q"):
+            return changed_total
+
+        if cmd in ("help", "?"):
+            _print(HELP)
+            continue
+
+        if cmd == "list":
+            for i, f in enumerate(items, 1):
+                _print("  %s %-24s %s %d chars, seen %dx"
+                       % (BOLD("%3d" % i), f["label"], DIM(f["hint"]),
+                          f["length"], f["count"]))
+            _print()
+            continue
+
+        if cmd == "rotate":
+            groups = {}
+            for f in items:
+                groups.setdefault(_provider_for(f["label"]), []).append(f)
+            for advice, group in sorted(groups.items()):
+                _print("  " + BOLD(advice))
+                for f in group:
+                    _print(DIM("      %-24s seen %dx" % (f["label"], f["count"])))
+                _print()
+            continue
+
+        if cmd in ("show", "mask", "keep"):
+            if cmd == "mask" and arg == "all":
+                changed_total += _mask(items, scanned, _print, GRN, RED)
+                items = []
+                continue
+            if not arg or not arg.isdigit() or not (1 <= int(arg) <= len(items)):
+                _print(RED("  need a number from 1 to %d" % len(items)))
+                continue
+            target = items[int(arg) - 1]
+
+            if cmd == "show":
+                _print("  " + BOLD(target["label"]))
+                _print(DIM("      looks like : %s" % target["hint"]))
+                _print(DIM("      length     : %d characters" % target["length"]))
+                _print(DIM("      occurrences: %d" % target["count"]))
+                _print(DIM("      rotate at  : %s" % _provider_for(target["label"])))
+                for path in sorted(target["files"]):
+                    _print(DIM("      %s" % path))
+                _print()
+            elif cmd == "keep":
+                items.remove(target)
+                _print(DIM("  kept. %d left." % len(items)))
+            else:
+                changed_total += _mask([target], scanned, _print, GRN, RED)
+                items.remove(target)
+            continue
+
+        _print(RED("  unknown command: %s" % cmd) + DIM("  (try 'help')"))
+
+
+def _mask(targets, scanned, _print, GRN, RED):
+    """Re-walk only the files that hold these secrets, masking just them."""
+    wanted = {t["fingerprint"] for t in targets}
+    paths = set()
+    for t in targets:
+        paths |= set(t["files"])
+
+    changed = 0
+    for path in sorted(paths):
+        found, did = scan_file(path, apply=True, only=wanted)
+        if did:
+            changed += 1
+    if changed:
+        _print(GRN("  masked in %d file(s)." % changed)
+               + (" Backups: %s" % BACKUP_ROOT))
+    else:
+        _print(RED("  nothing changed."))
+    return changed
