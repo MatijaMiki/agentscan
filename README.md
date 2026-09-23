@@ -32,18 +32,16 @@ $ ranwhat watch --days 90
 ## Install
 
 ```bash
-uvx --from git+https://github.com/MatijaMiki/ranwhat ranwhat watch
+uvx ranwhat watch --days 30
 ```
 
 Or put it on your path:
 
 ```bash
-pipx install git+https://github.com/MatijaMiki/ranwhat
+pipx install ranwhat
 ```
 
-Python 3.9+. Installing with plain `pip`? Upgrade it first, because the pip macOS
-ships cannot read this project's metadata and will silently build a wheel
-named `UNKNOWN-0.0.0` that installs fine and gives you no command.
+Python 3.9+. No dependencies, and nothing is built on your machine.
 
 ## Two tools
 

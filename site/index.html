@@ -25,7 +25,7 @@
 <link rel="preload" href="/fonts/archivo-d5751e0f.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/ibmplexmono-01c04f4d.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"ranwhat","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux","url":"https://ranwhat.com/","downloadUrl":"https://github.com/MatijaMiki/ranwhat","license":"https://opensource.org/licenses/MIT","description":"A local flight recorder for AI coding agents. Reads what agents actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"cenner"}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"ranwhat","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux","url":"https://ranwhat.com/","downloadUrl":"https://pypi.org/project/ranwhat/","license":"https://opensource.org/licenses/MIT","description":"A local flight recorder for AI coding agents. Reads what agents actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"cenner"}}]}</script>
 </head>
 <body>
 <header>
@@ -129,13 +129,13 @@
       </p>
       <div class="cmd" style="max-width:640px">
         <span class="dollar">$</span>
-        <span id="install-text">uvx --from git+https://github.com/MatijaMiki/ranwhat ranwhat watch</span>
+        <span id="install-text">uvx ranwhat watch --days 30</span>
         <button class="copy" data-copy="#install-text">Copy</button>
       </div>
       <p style="margin-top:18px;font-size:14px;color:var(--muted)">
-        Prefer it on your path? <span class="icode">pipx install git+https://github.com/MatijaMiki/ranwhat</span><br>
-        Installing with plain <span class="icode">pip</span> instead? Upgrade it first, because
-        the pip macOS ships is too old to read this project's metadata.
+        Prefer it on your path? <span class="icode">pipx install ranwhat</span>
+        or <span class="icode">pip install ranwhat</span>.<br>
+        Python 3.9 or newer, no dependencies, and nothing to build locally.
       </p>
     </div>
   </div>
