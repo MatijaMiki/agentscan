@@ -41,13 +41,13 @@ Or put it on your path:
 pipx install git+https://github.com/MatijaMiki/ranwhat
 ```
 
-Python 3.9+. Installing with plain `pip`? Upgrade it first — the pip macOS
+Python 3.9+. Installing with plain `pip`? Upgrade it first, because the pip macOS
 ships cannot read this project's metadata and will silently build a wheel
 named `UNKNOWN-0.0.0` that installs fine and gives you no command.
 
 ## Two tools
 
-### `ranwhat watch` — what your agents did
+### `ranwhat watch`: what your agents did
 
 Reads transcripts your agents already wrote to disk. No wrapper, no proxy,
 nothing in your critical path.
@@ -67,7 +67,7 @@ ranwhat watch --source openclaw
 ranwhat watch --json
 ```
 
-### `ranwhat scan` — what they're allowed to do next
+### `ranwhat scan`: what they're allowed to do next
 
 Reads the credentials an agent holds, read-only, and scores the three things
 that determine exposure.
@@ -89,10 +89,10 @@ ranwhat scan profile.json --pull-usage --stripe "$STRIPE_KEY"
 ```
 
 Capability catalogues for Google, GitHub, Slack, Stripe and AWS. Unrecognised
-scopes are classified by action verb and flagged unclassified — never assumed
+scopes are classified by action verb and flagged unclassified, never assumed
 safe.
 
-### `ranwhat clean` — secrets sitting in your transcripts
+### `ranwhat clean`: secrets sitting in your transcripts
 
 When an agent runs `cat .env`, the **output** is written into the transcript:
 your database password, your JWT secret, your provider tokens, in plaintext,
@@ -115,8 +115,8 @@ ranwhat> keep 3         leave it alone
 ranwhat> rotate         what to rotate, grouped by provider
 ```
 
-Each finding says where it came from — the file it was read out of and the
-project that file belongs to — because a 64-character string is useless
+Each finding says where it came from, the file it was read out of and the
+project that file belongs to, because a 64-character string is useless
 without knowing which `.env` it escaped:
 
 ```
@@ -125,8 +125,8 @@ without knowing which `.env` it escaped:
       in         /Users/you/Desktop/app
 ```
 
-**Redaction is not remediation.** Masking a value here does not un-expose it —
-it was already on disk and already sat in a model context you do not control.
+**Redaction is not remediation.** Masking a value here does not un-expose it.
+It was already on disk and already sat in a model context you do not control.
 The rotation is the fix; masking only stops it leaking a second time. The
 report says so rather than implying safety.
 
@@ -150,7 +150,7 @@ nothing anyone reads. So these are **not** treated as actions:
 | `# rm -rf ~/x` | A comment |
 | `rm -rf build` `rm -rf /tmp/x` | Deleting build output is not an incident |
 
-`bash -c` is the exception — its payload really is shell, so the parser
+`bash -c` is the exception: its payload really is shell, so the parser
 recurses into it. And severity follows the **target**, not the verb:
 `rm -rf /tmp/x` is silent, `rm -rf ~/Documents` is high, `rm -rf /` is
 critical.
@@ -171,7 +171,7 @@ export RANWHAT_STRIPE_TOKEN="rk_live_..."
 ranwhat scan profile.json --pull-usage
 ```
 
-`export` it first — `VAR=x ranwhat ...` on one line still puts the value in
+`export` it first, because `VAR=x ranwhat ...` on one line still puts the value in
 that shell's own command line. `--stripe env:MY_VAR` and `--stripe -` (read one
 line from stdin) also work. Passing a token as a flag value still works and
 prints a warning saying why it shouldn't.
@@ -181,12 +181,12 @@ agent's entire authority surface, which is useful to somebody other than you.
 
 ## Nothing leaves the machine
 
-Not a policy, an architecture:
+Not a policy but an architecture:
 
 - Credentials are held in memory for one call and never written down
 - Live introspection talks only to the credential's own issuer
 - Scans never exercise a permission and never need a write-scoped token
-- No runtime dependencies — nothing to audit before you point this at your keys
+- No runtime dependencies, so there is nothing to audit before you point this at your keys
 
 ## Say what you don't know
 
@@ -197,7 +197,7 @@ makes the report contradict itself:
 |---|---|
 | Verified | Pulled from the provider's own audit trail |
 | Self-attested | Declared in the profile, not independently pulled |
-| Unverified | No evidence at all — scopes are not assumed safe |
+| Unverified | No evidence at all, and scopes are not assumed safe |
 
 Usage pulls: AWS IAM service-last-accessed, Stripe events, Google Admin SDK,
 GitHub org audit log. Slack has no usable API below Enterprise Grid and says
@@ -212,7 +212,7 @@ evidence retention are not built yet.
 python3 -m unittest discover -s tests -v
 ```
 
-73 tests, written as invariants rather than expected output — most of them
+102 tests, written as invariants rather than expected output. Most of them
 exist because something on this page was once wrong.
 
 ## Licence
