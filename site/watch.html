@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ranwhat watch — what your agents actually ran</title>
+<meta name="description" content="Nine rules covering credential reads, destructive commands, package publishing and exfiltration-shaped pipes. Reads Claude Code and OpenClaw transcripts already on disk. Precision over recall, deliberately.">
+<link rel="canonical" href="https://ranwhat.com/watch.html">
+<meta name="color-scheme" content="light dark">
+<meta name="google-site-verification" content="H1pSrDiEFJ3SkWLLIC7Az4ghrC-IIj-kqINttylIULo">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0E1318">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ranwhat">
+<meta property="og:url" content="https://ranwhat.com/watch.html">
+<meta property="og:title" content="ranwhat watch — what your agents actually ran">
+<meta property="og:description" content="Nine rules covering credential reads, destructive commands, package publishing and exfiltration-shaped pipes. Reads Claude Code and OpenClaw transcripts already on disk. Precision over recall, deliberately.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ranwhat watch — what your agents actually ran">
+<meta name="twitter:description" content="Nine rules covering credential reads, destructive commands, package publishing and exfiltration-shaped pipes. Reads Claude Code and OpenClaw transcripts already on disk. Precision over recall, deliberately.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<header>
+  <div class="shell nav">
+    <a class="wordmark" href="/">ran<i>what</i></a>
+    <nav>
+      <a href="/watch.html" aria-current="page">Watch</a>
+      <a href="/clean.html">Clean</a>
+      <a href="/scan.html">Scan</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/about.html">About</a>
+      <a class="ghost" href="https://github.com/MatijaMiki/ranwhat">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<section>
+  <div class="shell band split">
+    <div class="marginal">01 — Detection</div>
+    <div>
+      <h2>Nine things worth interrupting you for.</h2>
+      <p class="lede">
+        This isn't antivirus. There's no adversary and no signature — you asked
+        the agent to do things. So it doesn't guess whether an action was allowed.
+        It raises the ones you'd want to know about either way.
+      </p>
+      <div class="scroll">
+      <table>
+        <thead><tr><th>Rule</th><th>Severity</th><th>Why it's on the list</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Credential access</strong><br><code>.env · ~/.aws/credentials · id_rsa</code></td>
+              <td><span class="chip crit">Critical</span></td>
+              <td>Read a file whose only purpose is holding secrets. The contents are now in a context you don't control.</td></tr>
+          <tr><td><strong>Secret literal in a command</strong><br><code>sk_live_… · ghp_… · AKIA…</code></td>
+              <td><span class="chip crit">Critical</span></td>
+              <td>A live key appeared verbatim. Even if the command was benign, it's in shell history now.</td></tr>
+          <tr><td><strong>Package published</strong><br><code>npm publish · twine upload</code></td>
+              <td><span class="chip crit">Critical</span></td>
+              <td>Something reached a registry other people install from. Supply-chain reach, usually irreversible.</td></tr>
+          <tr><td><strong>Cloud resource destroyed</strong><br><code>terraform destroy · kubectl delete</code></td>
+              <td><span class="chip crit">Critical</span></td>
+              <td>A write or delete against live infrastructure.</td></tr>
+          <tr><td><strong>Financial API called</strong><br><code>stripe charges · refunds</code></td>
+              <td><span class="chip crit">Critical</span></td>
+              <td>Every one of these moves real money.</td></tr>
+          <tr><td><strong>Log or history tampering</strong><br><code>history -c · cloudtrail stop</code></td>
+              <td><span class="chip crit">Critical</span></td>
+              <td>An action whose effect is removing the record of other actions.</td></tr>
+          <tr><td><strong>Destructive git</strong><br><code>push --force · reset --hard</code></td>
+              <td><span class="chip high">High</span></td>
+              <td>History rewriting. The class of action that destroys the record of what else happened.</td></tr>
+          <tr><td><strong>Recursive deletion</strong><br><code>rm -rf · find -delete</code></td>
+              <td><span class="chip high">High</span></td>
+              <td>Recoverable only if something else was backing it up.</td></tr>
+          <tr><td><strong>Exfiltration-shaped pipe</strong><br><code>tar … | curl</code></td>
+              <td><span class="chip high">High</span></td>
+              <td>File contents sent outbound in one command — that shape, whatever the intent.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="shell band split">
+    <div class="marginal">02 — Precision</div>
+    <div>
+      <h2>A watcher that cries wolf gets muted in a day.</h2>
+      <p class="lede">
+        So three things that <em>look</em> dangerous are not treated as actions.
+        Each of these was a real false positive on real history, found by pointing
+        the first version at a live machine.
+      </p>
+      <div class="grid3">
+        <div class="cell">
+          <h3 class="mono" style="font-size:13px">grep "rm -rf" src/</h3>
+          <p>Searching for a string isn't running it. Search tools without an action flag are suppressed.</p>
+        </div>
+        <div class="cell">
+          <h3 class="mono" style="font-size:13px">python3 -c "…rm -rf…"</h3>
+          <p>The payload is Python source. <code class="icode">bash -c</code> is the exception — that really is shell, so it recurses in.</p>
+        </div>
+        <div class="cell">
+          <h3 class="mono" style="font-size:13px">cat &gt; f.sh &lt;&lt;'EOF'</h3>
+          <p>A heredoc body is data being written. Writing a script that contains a command isn't running it.</p>
+        </div>
+      </div>
+      <div class="rows" style="margin-top:34px">
+        <div class="row"><span class="k">On real history</span>
+          <span class="v"><strong>15 findings before these rules, 4 after.</strong> Three were false positives; eleven were true deletions of build and temp directories that nobody would want to read.</span></div>
+        <div class="row"><span class="k">Evidence</span>
+          <span class="v">Every finding carries surrounding context. <span class="icode">rm -rf</span> on its own tells you nothing — the target is the point.</span></div>
+        <div class="row"><span class="k">Test suite</span>
+          <span class="v">98 tests, written as invariants rather than expected output.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="shell band split">
+    <div class="marginal">03 — Sources</div>
+    <div>
+      <h2>Reads the agents already on your machine.</h2>
+      <p class="lede">
+        No wrapper, no proxy, nothing in your critical path. It reads what the
+        agent already wrote to disk.
+      </p>
+      <div class="scroll">
+      <table>
+        <thead><tr><th>Agent</th><th>Location</th><th>Format</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Claude Code</strong></td>
+              <td><code>~/.claude/projects/*/*.jsonl</code></td>
+              <td>JSONL transcripts</td>
+              <td><span class="chip ok">Shipped</span></td></tr>
+          <tr><td><strong>OpenClaw</strong></td>
+              <td><code>$OPENCLAW_STATE_DIR/agents/*/…</code></td>
+              <td>SQLite, schema discovered at runtime</td>
+              <td><span class="chip ok">Shipped</span></td></tr>
+          <tr><td><strong>Codex</strong></td><td class="mono" style="color:var(--faint)">—</td>
+              <td>Native OpenTelemetry</td>
+              <td><span class="chip info">Next</span></td></tr>
+          <tr><td><strong>OTLP receiver</strong></td><td class="mono" style="color:var(--faint)">localhost</td>
+              <td>Any agent emitting GenAI spans</td>
+              <td><span class="chip info">Next</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p style="margin-top:22px;font-size:14.5px;color:var(--muted)">
+        OpenClaw's transcript schema isn't published beyond “append-only,
+        tree-structured”. Rather than pin table names that break on the next
+        release, the adapter discovers the schema at runtime and recognises tool
+        calls by shape. The database is opened read-only — it belongs to a
+        running agent — and falls back to a copy if that agent holds a WAL lock.
+      </p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="shell">
+    <div class="fgrid">
+      <div>
+        <a class="wordmark" href="/" style="font-size:16px">ran<i>what</i></a>
+        <p class="fnote">
+          A flight recorder for AI agents, and a scanner for the authority they
+          hold. Reads locally, transmits nothing.
+        </p>
+        <p class="byline">Built by <span>cenner</span></p>
+      </div>
+      <div>
+        <h4>Commands</h4>
+        <ul>
+          <li><a href="/watch.html">watch — what it did</a></li>
+          <li><a href="/clean.html">clean — secrets on disk</a></li>
+          <li><a href="/scan.html">scan — what it may do</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Docs</h4>
+        <ul>
+          <li><a href="/install.html">Install</a></li>
+          <li><a href="/privacy.html">Data boundary</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat#readme">README</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <ul>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/pricing.html">Pricing</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat">Repository</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat/issues">Issues</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fbase">
+      <span>cenner</span>
+      <span>ranwhat.com</span>
+      <span>Runs locally · transmits nothing</span>
+      <span>Python 3.9+ · no dependencies</span>
+    </div>
+  </div>
+</footer>
+<script src="/copy.js" defer></script>
+</body>
+</html>

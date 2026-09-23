@@ -1,0 +1,8 @@
+/* Cloudflare/Pages redirects for the old single-page anchors */
+/index.html#finds      /watch.html      301
+/index.html#precision  /watch.html      301
+/index.html#sources    /watch.html      301
+/index.html#authority  /scan.html       301
+/index.html#privacy    /privacy.html    301
+/index.html#faq        /faq.html        301
+/index.html#install    /install.html    301

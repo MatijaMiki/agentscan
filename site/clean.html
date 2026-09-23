@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ranwhat clean — secrets sitting in your agent transcripts</title>
+<meta name="description" content="When an agent runs cat .env, the output is written into its transcript in plaintext. ranwhat clean finds those credentials, tells you which to rotate and where, and masks them with a backup first.">
+<link rel="canonical" href="https://ranwhat.com/clean.html">
+<meta name="color-scheme" content="light dark">
+<meta name="google-site-verification" content="H1pSrDiEFJ3SkWLLIC7Az4ghrC-IIj-kqINttylIULo">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0E1318">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ranwhat">
+<meta property="og:url" content="https://ranwhat.com/clean.html">
+<meta property="og:title" content="ranwhat clean — secrets sitting in your agent transcripts">
+<meta property="og:description" content="When an agent runs cat .env, the output is written into its transcript in plaintext. ranwhat clean finds those credentials, tells you which to rotate and where, and masks them with a backup first.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ranwhat clean — secrets sitting in your agent transcripts">
+<meta name="twitter:description" content="When an agent runs cat .env, the output is written into its transcript in plaintext. ranwhat clean finds those credentials, tells you which to rotate and where, and masks them with a backup first.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<header>
+  <div class="shell nav">
+    <a class="wordmark" href="/">ran<i>what</i></a>
+    <nav>
+      <a href="/watch.html">Watch</a>
+      <a href="/clean.html" aria-current="page">Clean</a>
+      <a href="/scan.html">Scan</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/about.html">About</a>
+      <a class="ghost" href="https://github.com/MatijaMiki/ranwhat">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero pagehead">
+  <div class="shell">
+    <p class="eyebrow">ranwhat clean</p>
+    <h1>Your agent read your .env. The output is still on disk.</h1>
+    <p class="lede">
+      When an agent runs <span class="icode">cat .env</span>, the result is written
+      into its transcript in plaintext — your database password, your signing
+      secrets, your provider tokens — in files that are never rotated and get read
+      again by agents later.
+    </p>
+    <div class="cmdrow">
+      <div class="cmd">
+        <span class="dollar">$</span>
+        <span id="cmd-text">ranwhat clean</span>
+        <button class="copy" data-copy="#cmd-text">Copy</button>
+      </div>
+      <a class="ghost" href="/install.html" style="padding:11px 15px">Install</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">01 — The point</div>
+    <div>
+      <h2>Redaction is not remediation.</h2>
+      <p class="lede">
+        Masking a value here does not un-expose it. It was already written to disk
+        and already sat in a model context you do not control.
+      </p>
+      <p style="color:var(--muted);font-size:15px">
+        So the report leads with what to rotate and where, and treats masking as the
+        secondary act. A tool that printed “cleaned: 47 secrets” and left you feeling
+        safer would be actively harmful.
+      </p>
+      <div class="term" style="margin-top:26px">
+        <div class="term-bar"><span>ranwhat clean</span><span style="margin-left:auto">dry run</span></div>
+        <div class="term-body"><pre><span class="c-crit c-b">47 distinct secret(s)</span> <span class="c-mut">in 312 place(s)</span>
+
+<span class="c-b">These must be rotated.</span>
+<span class="c-mut">They have been written to disk in plaintext and sat in a
+model context you do not control. Masking them here stops
+them leaking again. It does not make them safe.</span>
+
+<span class="c-crit">*</span> <span class="c-b">AWS access key ID</span>        <span class="c-mut">AKI…AA   20 chars, seen 8x</span>
+<span class="c-crit">*</span> <span class="c-b">DATABASE_URL</span>             <span class="c-mut">pos…pp   42 chars, seen 8x</span>
+<span class="c-crit">*</span> <span class="c-b">PUSHER_APP_SECRET</span>        <span class="c-mut">b99…0a   64 chars, seen 2x</span>
+
+<span class="c-warn">Dry run. Nothing was changed.</span></pre></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">02 — Review</div>
+    <div>
+      <h2>The session stays open.</h2>
+      <p class="lede">
+        Scanning a real history takes a while and the findings are already in
+        memory. Re-running the whole scan to act on what you just read wastes that.
+      </p>
+      <div class="term">
+        <div class="term-body"><pre><span class="c-mut">ranwhat&gt;</span> list           <span class="c-mut">the findings again</span>
+<span class="c-mut">ranwhat&gt;</span> show 3         <span class="c-mut">where it appears, and what to roll it at</span>
+<span class="c-mut">ranwhat&gt;</span> mask 3         <span class="c-mut">mask just that one</span>
+<span class="c-mut">ranwhat&gt;</span> mask all       <span class="c-mut">mask everything listed</span>
+<span class="c-mut">ranwhat&gt;</span> keep 3         <span class="c-mut">leave it alone</span>
+<span class="c-mut">ranwhat&gt;</span> rotate         <span class="c-mut">grouped by provider</span></pre></div>
+      </div>
+      <p style="margin-top:22px;font-size:14.5px;color:var(--muted)">
+        <span class="icode">rotate</span> names the place to roll each one — the IAM
+        console, Stripe’s API keys page, BotFather — rather than leaving you to work
+        out where a 64-character string came from.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shell band split">
+    <div class="marginal">03 — Restraint</div>
+    <div>
+      <h2>A secret is a literal, not code that mentions one.</h2>
+      <p class="lede">
+        Run against a machine that does real work, the first build reported 185
+        secrets and roughly two thirds were not credentials at all.
+      </p>
+      <div class="scroll">
+      <table>
+        <thead><tr><th>Reported</th><th>What it actually is</th></tr></thead>
+        <tbody>
+          <tr><td><code>process.env.DB_PASSWORD</code></td><td>a reference to a secret, not its value</td></tr>
+          <tr><td><code>crypto.randomBytes(32)</code></td><td>a call that produces one</td></tr>
+          <tr><td><code>[A-Z]{20}</code></td><td>a regex that matches one</td></tr>
+          <tr><td><code>${env}-session-id</code></td><td>a template literal</td></tr>
+          <tr><td><code>/Users/you/project</code></td><td>a path assigned to PWD</td></tr>
+          <tr><td><code>your-api-key-here</code></td><td>a placeholder</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p style="margin-top:22px;font-size:14.5px;color:var(--muted)">
+        A value now has to be a literal: no code syntax, no environment reference,
+        not a path, not a regex, not already masked. What survives must clear three
+        bits per character of Shannon entropy unless it matches a known credential
+        shape. Generated secrets sit well above that line; words and code sit below.
+      </p>
+      <div class="rows" style="margin-top:26px">
+        <div class="row"><span class="k">Measured</span>
+          <span class="v"><strong>15 of 18 false positives before, 0 after</strong>, with all eight genuine credentials still found.</span></div>
+        <div class="row"><span class="k">Safety</span>
+          <span class="v">Reports by default. <span class="icode">--apply</span> writes a timestamped backup first, then parses the rewritten file back before replacing the original.</span></div>
+        <div class="row"><span class="k">Scope</span>
+          <span class="v">Masking one finding rewrites only that value, not every other secret in the same file.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="shell">
+    <div class="fgrid">
+      <div>
+        <a class="wordmark" href="/" style="font-size:16px">ran<i>what</i></a>
+        <p class="fnote">
+          A flight recorder for AI agents, and a scanner for the authority they
+          hold. Reads locally, transmits nothing.
+        </p>
+        <p class="byline">Built by <span>cenner</span></p>
+      </div>
+      <div>
+        <h4>Commands</h4>
+        <ul>
+          <li><a href="/watch.html">watch — what it did</a></li>
+          <li><a href="/clean.html">clean — secrets on disk</a></li>
+          <li><a href="/scan.html">scan — what it may do</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Docs</h4>
+        <ul>
+          <li><a href="/install.html">Install</a></li>
+          <li><a href="/privacy.html">Data boundary</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat#readme">README</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <ul>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/pricing.html">Pricing</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat">Repository</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat/issues">Issues</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fbase">
+      <span>cenner</span>
+      <span>ranwhat.com</span>
+      <span>Runs locally · transmits nothing</span>
+      <span>Python 3.9+ · no dependencies</span>
+    </div>
+  </div>
+</footer>
+<script src="/copy.js" defer></script>
+</body>
+</html>

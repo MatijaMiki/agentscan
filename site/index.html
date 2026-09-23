@@ -4,52 +4,46 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ranwhat — find out what your AI agents actually did</title>
-<meta name="description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything. Free and open source.">
+<meta name="description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, finds credentials left in transcripts, and scores the authority your agents hold. Free, open source, transmits nothing.">
 <link rel="canonical" href="https://ranwhat.com/">
 <meta name="color-scheme" content="light dark">
+<meta name="google-site-verification" content="H1pSrDiEFJ3SkWLLIC7Az4ghrC-IIj-kqINttylIULo">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/favicon-16.png" sizes="16x16" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#0E1318">
-<meta name="google-site-verification" content="H1pSrDiEFJ3SkWLLIC7Az4ghrC-IIj-kqINttylIULo">
-
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ranwhat">
 <meta property="og:url" content="https://ranwhat.com/">
 <meta property="og:title" content="ranwhat — find out what your AI agents actually did">
-<meta property="og:description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything. Free and open source.">
+<meta property="og:description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, finds credentials left in transcripts, and scores the authority your agents hold. Free, open source, transmits nothing.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ranwhat — find out what your AI agents actually did">
-<meta name="twitter:description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything. Free and open source.">
-
+<meta name="twitter:description" content="A local flight recorder for AI coding agents. Reads what Claude Code and OpenClaw actually ran, finds credentials left in transcripts, and scores the authority your agents hold. Free, open source, transmits nothing.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="/styles.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"ranwhat","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux","url":"https://ranwhat.com/","downloadUrl":"https://github.com/MatijaMiki/ranwhat","license":"https://opensource.org/licenses/MIT","description":"A local flight recorder for AI coding agents. Reads what agents actually ran, surfaces credential reads, destructive commands and leaked secrets, and never transmits anything.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"cenner"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does it send anything anywhere?","acceptedAnswer":{"@type":"Answer","text":"No. The watcher reads transcripts your agents already wrote to disk and prints to your terminal. The scanner talks only to the credential's own issuer when you ask it to introspect a token. There is no telemetry, no account and no server."}},{"@type":"Question","name":"Does it need my credentials?","acceptedAnswer":{"@type":"Answer","text":"The watcher needs none at all — point it at your machine and it works. The authority scanner can introspect tokens read-only, but it never exercises a permission and never needs a write-scoped credential. Pass tokens through the environment rather than the command line, because anything in argv is readable by every user on the machine."}},{"@type":"Question","name":"Which agents does it read?","acceptedAnswer":{"@type":"Answer","text":"Claude Code and OpenClaw today. Codex and an OTLP receiver are next, which will cover anything emitting OpenTelemetry GenAI spans. It reads files the agent already wrote, so there is no wrapper, no proxy and nothing in your critical path."}},{"@type":"Question","name":"Will it slow my agent down?","acceptedAnswer":{"@type":"Answer","text":"No. It runs after the fact against files on disk. Your agent never knows it exists."}},{"@type":"Question","name":"Is it safe to run clean --apply?","acceptedAnswer":{"@type":"Answer","text":"It reports by default and changes nothing until you ask. When you do, it writes a timestamped backup first, then parses the rewritten file back before replacing the original, so a transcript is never left corrupted. Ordinary config, templates and placeholders are left alone."}},{"@type":"Question","name":"If I mask a secret, is it safe now?","acceptedAnswer":{"@type":"Answer","text":"No, and the tool says so. The value was already written to disk in plaintext and already sat in a model context you do not control. Masking stops it leaking a second time. Rotating it is the actual fix, which is why the report leads with what to rotate and where."}},{"@type":"Question","name":"How is this different from scanning my agent's config?","acceptedAnswer":{"@type":"Answer","text":"Tools that scan agent components look at what is installed — MCP servers, skills, configuration — for known-bad content. ranwhat looks at what your agent actually did with the access it has, and what it is still allowed to do next time."}},{"@type":"Question","name":"What does it cost?","acceptedAnswer":{"@type":"Answer","text":"Nothing on your own machine, forever, and the code is MIT licensed with no dependencies. Paid tiers exist for collecting records across machines and for evidence retention. We never charge per finding — a tool paid by the alert has a reason to cry wolf."}},{"@type":"Question","name":"Does it work on Linux and Windows?","acceptedAnswer":{"@type":"Answer","text":"Linux yes. Windows is untested — it is pure Python with no platform-specific calls, so it will probably work, but nobody has verified it. Tell us if you do."}}]}]}</script>
 </head>
 <body>
 <header>
   <div class="shell nav">
-    <a class="wordmark" href="#top">ran<i>what</i></a>
+    <a class="wordmark" href="/">ran<i>what</i></a>
     <nav>
-      <a href="#finds">What it finds</a>
-      <a href="#precision" data-optional>Precision</a>
-      <a href="#sources" data-optional>Sources</a>
-      <a href="#authority" data-optional>Authority</a>
-      <a href="#faq" data-optional>FAQ</a>
-      <a href="pricing.html">Pricing</a>
-      <a href="about.html">About</a>
+      <a href="/watch.html">Watch</a>
+      <a href="/clean.html">Clean</a>
+      <a href="/scan.html">Scan</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/about.html">About</a>
       <a class="ghost" href="https://github.com/MatijaMiki/ranwhat">GitHub</a>
     </nav>
   </div>
 </header>
 
 <main id="top">
-
-<!-- HERO -->
 <section class="hero">
   <div class="shell">
     <p class="eyebrow">Flight recorder for AI agents</p>
@@ -92,208 +86,38 @@
     </div>
   </div>
 </section>
-
-<!-- WHAT IT FINDS -->
-<section id="finds">
+<section>
   <div class="shell band split">
-    <div class="marginal">01 — Detection</div>
+    <div class="marginal">Three commands</div>
     <div>
-      <h2>Nine things worth interrupting you for.</h2>
+      <h2>What it did, what leaked, what it may do next.</h2>
       <p class="lede">
-        This isn't antivirus. There's no adversary and no signature — you asked
-        the agent to do things. So it doesn't guess whether an action was allowed.
-        It raises the ones you'd want to know about either way.
-      </p>
-      <div class="scroll">
-      <table>
-        <thead><tr><th>Rule</th><th>Severity</th><th>Why it's on the list</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Credential access</strong><br><code>.env · ~/.aws/credentials · id_rsa</code></td>
-              <td><span class="chip crit">Critical</span></td>
-              <td>Read a file whose only purpose is holding secrets. The contents are now in a context you don't control.</td></tr>
-          <tr><td><strong>Secret literal in a command</strong><br><code>sk_live_… · ghp_… · AKIA…</code></td>
-              <td><span class="chip crit">Critical</span></td>
-              <td>A live key appeared verbatim. Even if the command was benign, it's in shell history now.</td></tr>
-          <tr><td><strong>Package published</strong><br><code>npm publish · twine upload</code></td>
-              <td><span class="chip crit">Critical</span></td>
-              <td>Something reached a registry other people install from. Supply-chain reach, usually irreversible.</td></tr>
-          <tr><td><strong>Cloud resource destroyed</strong><br><code>terraform destroy · kubectl delete</code></td>
-              <td><span class="chip crit">Critical</span></td>
-              <td>A write or delete against live infrastructure.</td></tr>
-          <tr><td><strong>Financial API called</strong><br><code>stripe charges · refunds</code></td>
-              <td><span class="chip crit">Critical</span></td>
-              <td>Every one of these moves real money.</td></tr>
-          <tr><td><strong>Log or history tampering</strong><br><code>history -c · cloudtrail stop</code></td>
-              <td><span class="chip crit">Critical</span></td>
-              <td>An action whose effect is removing the record of other actions.</td></tr>
-          <tr><td><strong>Destructive git</strong><br><code>push --force · reset --hard</code></td>
-              <td><span class="chip high">High</span></td>
-              <td>History rewriting. The class of action that destroys the record of what else happened.</td></tr>
-          <tr><td><strong>Recursive deletion</strong><br><code>rm -rf · find -delete</code></td>
-              <td><span class="chip high">High</span></td>
-              <td>Recoverable only if something else was backing it up.</td></tr>
-          <tr><td><strong>Exfiltration-shaped pipe</strong><br><code>tar … | curl</code></td>
-              <td><span class="chip high">High</span></td>
-              <td>File contents sent outbound in one command — that shape, whatever the intent.</td></tr>
-        </tbody>
-      </table>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PRECISION -->
-<section id="precision">
-  <div class="shell band split">
-    <div class="marginal">02 — Precision</div>
-    <div>
-      <h2>A watcher that cries wolf gets muted in a day.</h2>
-      <p class="lede">
-        So three things that <em>look</em> dangerous are not treated as actions.
-        Each of these was a real false positive on real history, found by pointing
-        the first version at a live machine.
+        Each one runs locally and reports before it changes anything.
       </p>
       <div class="grid3">
         <div class="cell">
-          <h3 class="mono" style="font-size:13px">grep "rm -rf" src/</h3>
-          <p>Searching for a string isn't running it. Search tools without an action flag are suppressed.</p>
+          <h3 class="mono" style="font-size:13.5px">ranwhat watch</h3>
+          <p>Reads what your agents already ran and raises the handful of
+             irreversible actions worth knowing about.
+             <a href="/watch.html">What it finds →</a></p>
         </div>
         <div class="cell">
-          <h3 class="mono" style="font-size:13px">python3 -c "…rm -rf…"</h3>
-          <p>The payload is Python source. <code class="icode">bash -c</code> is the exception — that really is shell, so it recurses in.</p>
+          <h3 class="mono" style="font-size:13.5px">ranwhat clean</h3>
+          <p>Finds credentials sitting in plaintext in your agent transcripts,
+             tells you what to rotate, and masks them.
+             <a href="/clean.html">How it works →</a></p>
         </div>
         <div class="cell">
-          <h3 class="mono" style="font-size:13px">cat &gt; f.sh &lt;&lt;'EOF'</h3>
-          <p>A heredoc body is data being written. Writing a script that contains a command isn't running it.</p>
+          <h3 class="mono" style="font-size:13.5px">ranwhat scan</h3>
+          <p>Scores the authority your agent's credentials carry, and which
+             permissions it has never once used.
+             <a href="/scan.html">The three axes →</a></p>
         </div>
-      </div>
-      <div class="rows" style="margin-top:34px">
-        <div class="row"><span class="k">On real history</span>
-          <span class="v"><strong>15 findings before these rules, 4 after.</strong> Three were false positives; eleven were true deletions of build and temp directories that nobody would want to read.</span></div>
-        <div class="row"><span class="k">Evidence</span>
-          <span class="v">Every finding carries surrounding context. <span class="icode">rm -rf</span> on its own tells you nothing — the target is the point.</span></div>
-        <div class="row"><span class="k">Test suite</span>
-          <span class="v">52 tests, written as invariants rather than expected output.</span></div>
       </div>
     </div>
   </div>
 </section>
-
-<!-- SOURCES -->
-<section id="sources">
-  <div class="shell band split">
-    <div class="marginal">03 — Sources</div>
-    <div>
-      <h2>Reads the agents already on your machine.</h2>
-      <p class="lede">
-        No wrapper, no proxy, nothing in your critical path. It reads what the
-        agent already wrote to disk.
-      </p>
-      <div class="scroll">
-      <table>
-        <thead><tr><th>Agent</th><th>Location</th><th>Format</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Claude Code</strong></td>
-              <td><code>~/.claude/projects/*/*.jsonl</code></td>
-              <td>JSONL transcripts</td>
-              <td><span class="chip ok">Shipped</span></td></tr>
-          <tr><td><strong>OpenClaw</strong></td>
-              <td><code>$OPENCLAW_STATE_DIR/agents/*/…</code></td>
-              <td>SQLite, schema discovered at runtime</td>
-              <td><span class="chip ok">Shipped</span></td></tr>
-          <tr><td><strong>Codex</strong></td><td class="mono" style="color:var(--faint)">—</td>
-              <td>Native OpenTelemetry</td>
-              <td><span class="chip info">Next</span></td></tr>
-          <tr><td><strong>OTLP receiver</strong></td><td class="mono" style="color:var(--faint)">localhost</td>
-              <td>Any agent emitting GenAI spans</td>
-              <td><span class="chip info">Next</span></td></tr>
-        </tbody>
-      </table>
-      </div>
-      <p style="margin-top:22px;font-size:14.5px;color:var(--muted)">
-        OpenClaw's transcript schema isn't published beyond “append-only,
-        tree-structured”. Rather than pin table names that break on the next
-        release, the adapter discovers the schema at runtime and recognises tool
-        calls by shape. The database is opened read-only — it belongs to a
-        running agent — and falls back to a copy if that agent holds a WAL lock.
-      </p>
-    </div>
-  </div>
-</section>
-
-<!-- AUTHORITY -->
-<section id="authority">
-  <div class="shell band split">
-    <div class="marginal">04 — Authority</div>
-    <div>
-      <h2>And what it's allowed to do next time.</h2>
-      <p class="lede">
-        The watcher tells you what happened. The scanner tells you what could.
-        It reads the credentials your agent holds — read-only — and scores the
-        three things that actually determine your exposure.
-      </p>
-      <div class="scores">
-        <div class="score"><div class="lab">Authority</div>
-          <div class="n">19<small>/100 · F</small></div>
-          <div class="track"><div class="fill" style="width:19%;background:var(--crit)"></div></div></div>
-        <div class="score"><div class="lab">Observability</div>
-          <div class="n">25<small>/100 · F</small></div>
-          <div class="track"><div class="fill" style="width:25%;background:var(--crit)"></div></div></div>
-        <div class="score"><div class="lab">Reversibility</div>
-          <div class="n">24<small>/100 · F</small></div>
-          <div class="track"><div class="fill" style="width:24%;background:var(--crit)"></div></div></div>
-      </div>
-      <div class="rows" style="margin-top:30px">
-        <div class="row"><span class="k">Least privilege</span>
-          <span class="v"><strong>23 permissions granted, 15 never exercised.</strong> Five of those can move money or destroy data — full liability, zero utility.</span></div>
-        <div class="row"><span class="k">Blast radius</span>
-          <span class="v">Unbounded financial authority. 13 irreversible actions reachable with no approval gate.</span></div>
-        <div class="row"><span class="k">Reconstruction</span>
-          <span class="v">Traces don't carry tool name, arguments or credential identity. You can't answer what the agent did on Tuesday, or under whose authority.</span></div>
-        <div class="row"><span class="k">Evidence grade</span>
-          <span class="v">Usage is <span class="chip ok">verified</span> <span class="chip info">self-attested</span> or <span class="chip crit">unverified</span> per provider — never silently assumed clean.</span></div>
-      </div>
-      <p style="margin-top:22px;font-size:14.5px;color:var(--muted)">
-        Catalogued capability semantics for Google, GitHub, Slack, Stripe and AWS.
-        Unrecognised scopes are classified by action verb and flagged as
-        unclassified — never assumed safe.
-      </p>
-    </div>
-  </div>
-</section>
-
-<!-- PRIVACY -->
-<section id="privacy">
-  <div class="shell band split">
-    <div class="marginal">05 — Boundary</div>
-    <div>
-      <h2>Nothing leaves the machine.</h2>
-      <p class="lede">
-        Not a policy — an architecture. Anything touching a secret runs locally;
-        live introspection talks only to the credential's own issuer.
-      </p>
-      <div class="grid2">
-        <div class="cell">
-          <h3>Stays local</h3>
-          <p>Credentials, prompts, tool arguments, file contents, customer records. The CLI holds a token in memory for one call and never writes it down.</p>
-        </div>
-        <div class="cell">
-          <h3>Would ever leave</h3>
-          <p>Nothing today. When a hosted dashboard exists it receives derived metadata only — what tool, what authority, was it reversible — with payloads hashed in place.</p>
-        </div>
-      </div>
-      <div class="rows" style="margin-top:30px">
-        <div class="row"><span class="k">Read-only</span>
-          <span class="v">Scans introspect scopes. They never exercise a permission, and never request a write-scoped credential to run.</span></div>
-        <div class="row"><span class="k">Auditable</span>
-          <span class="v">Pure Python standard library. No dependency tree to review before you point it at your own keys.</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- INSTALL -->
-<section id="install">
+<section>
   <div class="shell band split">
     <div class="marginal">06 — Install</div>
     <div>
@@ -315,26 +139,13 @@
     </div>
   </div>
 </section>
-
-
-<!-- FAQ -->
-<section id="faq">
-  <div class="shell band split">
-    <div class="marginal">07 — Questions</div>
-    <div>
-      <h2>The ones worth answering up front.</h2>
-      <div class="faqs"><div class="faq"><h3>Does it send anything anywhere?</h3><p>No. The watcher reads transcripts your agents already wrote to disk and prints to your terminal. The scanner talks only to the credential's own issuer when you ask it to introspect a token. There is no telemetry, no account and no server.</p></div><div class="faq"><h3>Does it need my credentials?</h3><p>The watcher needs none at all — point it at your machine and it works. The authority scanner can introspect tokens read-only, but it never exercises a permission and never needs a write-scoped credential. Pass tokens through the environment rather than the command line, because anything in argv is readable by every user on the machine.</p></div><div class="faq"><h3>Which agents does it read?</h3><p>Claude Code and OpenClaw today. Codex and an OTLP receiver are next, which will cover anything emitting OpenTelemetry GenAI spans. It reads files the agent already wrote, so there is no wrapper, no proxy and nothing in your critical path.</p></div><div class="faq"><h3>Will it slow my agent down?</h3><p>No. It runs after the fact against files on disk. Your agent never knows it exists.</p></div><div class="faq"><h3>Is it safe to run clean --apply?</h3><p>It reports by default and changes nothing until you ask. When you do, it writes a timestamped backup first, then parses the rewritten file back before replacing the original, so a transcript is never left corrupted. Ordinary config, templates and placeholders are left alone.</p></div><div class="faq"><h3>If I mask a secret, is it safe now?</h3><p>No, and the tool says so. The value was already written to disk in plaintext and already sat in a model context you do not control. Masking stops it leaking a second time. Rotating it is the actual fix, which is why the report leads with what to rotate and where.</p></div><div class="faq"><h3>How is this different from scanning my agent's config?</h3><p>Tools that scan agent components look at what is installed — MCP servers, skills, configuration — for known-bad content. ranwhat looks at what your agent actually did with the access it has, and what it is still allowed to do next time.</p></div><div class="faq"><h3>What does it cost?</h3><p>Nothing on your own machine, forever, and the code is MIT licensed with no dependencies. Paid tiers exist for collecting records across machines and for evidence retention. We never charge per finding — a tool paid by the alert has a reason to cry wolf.</p></div><div class="faq"><h3>Does it work on Linux and Windows?</h3><p>Linux yes. Windows is untested — it is pure Python with no platform-specific calls, so it will probably work, but nobody has verified it. Tell us if you do.</p></div></div>
-    </div>
-  </div>
-</section>
-
 </main>
 
 <footer>
   <div class="shell">
     <div class="fgrid">
       <div>
-        <a class="wordmark" href="#top" style="font-size:16px">ran<i>what</i></a>
+        <a class="wordmark" href="/" style="font-size:16px">ran<i>what</i></a>
         <p class="fnote">
           A flight recorder for AI agents, and a scanner for the authority they
           hold. Reads locally, transmits nothing.
@@ -342,33 +153,29 @@
         <p class="byline">Built by <span>cenner</span></p>
       </div>
       <div>
-        <h4>Product</h4>
+        <h4>Commands</h4>
         <ul>
-          <li><a href="#finds">What it finds</a></li>
-          <li><a href="#precision">Precision</a></li>
-          <li><a href="#sources">Sources</a></li>
-          <li><a href="#authority">Authority scan</a></li>
+          <li><a href="/watch.html">watch — what it did</a></li>
+          <li><a href="/clean.html">clean — secrets on disk</a></li>
+          <li><a href="/scan.html">scan — what it may do</a></li>
         </ul>
       </div>
       <div>
         <h4>Docs</h4>
         <ul>
-          <li><a href="#install">Install</a></li>
-          <li><a href="#faq">FAQ</a></li>
+          <li><a href="/install.html">Install</a></li>
+          <li><a href="/privacy.html">Data boundary</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat#readme">README</a></li>
-          <li><a href="https://github.com/MatijaMiki/ranwhat/tree/main/tests">Test suite</a></li>
-          <li><a href="#privacy">Data boundary</a></li>
         </ul>
       </div>
       <div>
         <h4>Project</h4>
         <ul>
-          <li><a href="about.html">About</a></li>
-          <li><a href="#faq" data-optional>FAQ</a>
-      <a href="pricing.html">Pricing</a></li>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/pricing.html">Pricing</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat">Repository</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat/issues">Issues</a></li>
-          <li><a href="https://github.com/MatijaMiki/ranwhat/commits/main">Changelog</a></li>
         </ul>
       </div>
     </div>
@@ -380,8 +187,6 @@
     </div>
   </div>
 </footer>
-
-<script src="copy.js" defer></script>
-
+<script src="/copy.js" defer></script>
 </body>
 </html>
