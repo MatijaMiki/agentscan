@@ -60,9 +60,7 @@ section{border-top:1px solid var(--rule)}
 .split{display:grid;grid-template-columns:172px minmax(0,1fr);gap:40px;align-items:start}
 .marginal::before{
   content:"";position:absolute;inset:0 0 auto;height:4px;
-  background:linear-gradient(to right,
-    var(--sp1) 0 20%, var(--sp2) 20% 40%, var(--sp3) 40% 60%,
-    var(--sp4) 60% 80%, var(--sp5) 80% 100%);
+  background:var(--mark, var(--sp1));
 }
 .marginal{
   min-width:132px;
@@ -182,19 +180,17 @@ h1{font-size:clamp(38px,6.2vw,66px);line-height:1.03;letter-spacing:-.04em;
 .chip.high{background:var(--warn-bg);color:var(--warn)}
 .chip.ok{background:var(--ok-bg);color:var(--ok)}
 .chip.info{background:var(--info-bg);color:var(--info)}
-/* Section markers cycle the palette. Assigned explicitly rather than by
-   nth-of-type, because a hero occupies a slot without carrying a marker and
-   the cycle would skip a colour on any page that has one. These are chrome,
-   not findings: the chips stay strictly semantic, because a report has to
-   read at a glance and a decorative green would undo that. */
-.mark-1 .marginal{border-top-color:var(--brand);
-  color:color-mix(in srgb,var(--brand) 60%,var(--faint))}
-.mark-2 .marginal{border-top-color:var(--warn);
-  color:color-mix(in srgb,var(--warn) 60%,var(--faint))}
-.mark-3 .marginal{border-top-color:var(--ok);
-  color:color-mix(in srgb,var(--ok) 60%,var(--faint))}
-.mark-4 .marginal{border-top-color:var(--info);
-  color:color-mix(in srgb,var(--info) 60%,var(--faint))}
+/* One solid colour per section, stepping down the page: red, orange,
+   yellow, green, blue. A page with fewer sections simply stops early. */
+.mark-1{--mark:var(--sp1)}
+.mark-2{--mark:var(--sp2)}
+.mark-3{--mark:var(--sp3)}
+.mark-4{--mark:var(--sp4)}
+.mark-5{--mark:var(--sp5)}
+.mark-1 .marginal,.mark-2 .marginal,.mark-3 .marginal,
+.mark-4 .marginal,.mark-5 .marginal{
+  color:color-mix(in srgb,var(--mark) 55%,var(--faint));
+}
 .cell p a,.prose a{color:var(--brand);text-decoration-color:color-mix(in srgb,var(--brand) 40%,transparent);text-underline-offset:2px}
 
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;
@@ -304,3 +300,27 @@ footer{border-top:0;background:var(--surface)}
 .faq{background:var(--surface);padding:22px 24px}
 .faq h3{margin:0 0 8px;font-size:16px;letter-spacing:-.011em}
 .faq p{margin:0;color:var(--muted);font-size:14.5px;max-width:70ch}
+
+
+/* ---------- closing band ---------- */
+.closer{border-top:1px solid var(--rule);background:var(--raise);
+  position:relative}
+.closer::before{
+  content:"";position:absolute;inset:0 0 auto;height:3px;
+  background:linear-gradient(to right,
+    var(--sp1) 0 20%, var(--sp2) 20% 40%, var(--sp3) 40% 60%,
+    var(--sp4) 60% 80%, var(--sp5) 80% 100%);
+}
+.closer .shell{padding-block:64px}
+.closer-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
+  gap:52px;align-items:start}
+.closer h2{font-size:clamp(23px,2.6vw,30px);margin:0 0 10px}
+.closer p{color:var(--muted);font-size:15px;margin:0 0 20px;max-width:52ch}
+.closer-side{border-left:1px solid var(--rule);padding-left:34px}
+.closer-side h3{font-size:14px;letter-spacing:.02em;margin:0 0 8px}
+.closer-side p{font-size:14px}
+@media(max-width:820px){
+  .closer-grid{grid-template-columns:1fr;gap:34px}
+  .closer-side{border-left:0;border-top:1px solid var(--rule);
+    padding-left:0;padding-top:28px}
+}
