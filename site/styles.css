@@ -56,11 +56,11 @@ a{color:inherit}
 /* ---------- layout ---------- */
 .shell{max-width:1120px;margin:0 auto;padding-inline:20px}
 /* The header is sticky, so an anchor jump would otherwise land underneath it.
-   Measured: 59px normally, 92px once the nav wraps to two rows, 122px at
-   three. Keep a little air on top of each. */
+   Measured: 59px on one row, 87px once the links wrap to a second, 117px when
+   the links themselves wrap at 320px. A little air on top of each. */
 html{scroll-padding-top:72px}
-@media(max-width:600px){html{scroll-padding-top:106px}}
-@media(max-width:560px){html{scroll-padding-top:136px}}
+@media(max-width:760px){html{scroll-padding-top:100px}}
+@media(max-width:340px){html{scroll-padding-top:130px}}
 section{border-top:1px solid var(--rule)}
 .band{padding-block:72px}
 @media(max-width:620px){.band{padding-block:46px}}
@@ -109,17 +109,19 @@ header{
   white-space:nowrap;
 }
 .ghost:hover{background:var(--ink);color:var(--ground)}
-/* Six links plus a button do not fit one phone line. Wrap the bar onto a
-   second row rather than hiding pages: a taller header is a smaller cost
-   than a nav that silently drops half the site on mobile. */
-@media(max-width:860px){
-  .nav{flex-wrap:wrap;height:auto;padding-block:11px;gap:10px 18px}
-  .nav nav{flex-wrap:wrap;gap:10px 18px}
-  .nav nav a{font-size:13.5px}
+/* Six links plus a button do not fit one phone line, and hiding pages is
+   worse than a taller bar. The GitHub button is a sibling of <nav> rather
+   than inside it, so it can sit up beside the wordmark and the links get a
+   full row of their own: two rows instead of three. */
+@media(max-width:760px){
+  .nav{flex-wrap:wrap;height:auto;padding-block:10px;gap:10px 16px}
+  .nav > .ghost{order:2;margin-left:auto}
+  .nav nav{order:3;width:100%;margin-left:0;flex-wrap:wrap;gap:10px 18px}
+  .nav nav a{font-size:14px}
 }
-@media(max-width:560px){
-  .nav{gap:9px 14px}
-  .nav nav{gap:9px 14px;margin-left:0;width:100%}
+@media(max-width:400px){
+  .nav nav{gap:9px 14px}
+  .nav nav a{font-size:13.5px}
 }
 
 /* ---------- hero ---------- */
