@@ -146,12 +146,22 @@ def _rm_targets(text):
 
 
 def _is_ephemeral(target):
+    """True when a path is throwaway by construction.
+
+    Judged on every component, not just the basename: ~/.cache/uv/git-v0 is
+    cache, and node_modules/foo/bar is still node_modules. Checking only the
+    last segment missed both.
+    """
     if not target:
         return False
     if target.startswith(_TMP_PREFIXES) or target in ("/tmp", "/private/tmp"):
         return True
-    base = target.rstrip("/").split("/")[-1]
-    return base in _EPHEMERAL_BASENAMES or base.endswith(_EPHEMERAL_SUFFIXES)
+    parts = [p for p in target.rstrip("/").split("/") if p]
+    if not parts:
+        return False
+    if parts[-1].endswith(_EPHEMERAL_SUFFIXES):
+        return True
+    return any(p in _EPHEMERAL_BASENAMES for p in parts)
 
 
 def _normalise_target(t):

@@ -125,6 +125,15 @@ class DeletionSeverityFollowsTheTarget(unittest.TestCase):
         self.assertEqual(watch._rm_targets("rm -rf build > /dev/null"), ["build"])
         self.assertIsNone(self.severity("rm -rf build dist 2>/dev/null"))
 
+    def test_ephemeral_is_judged_on_every_path_component(self):
+        """~/.cache/uv/git-v0 is cache, and node_modules/foo is still
+        node_modules. Checking only the basename missed both."""
+        self.assertIsNone(self.severity("rm -rf ~/.cache/uv/git-v0"))
+        self.assertIsNone(self.severity("rm -rf node_modules/foo/bar"))
+        self.assertIsNone(self.severity("rm -rf ~/projects/app/build/out"))
+        self.assertEqual(self.severity("rm -rf ~/Documents/build-notes"),
+                         watch.HIGH)
+
     def test_generated_directories_matched_by_suffix(self):
         self.assertIsNone(self.severity("rm -rf ranwhat.egg-info"))
         self.assertIsNone(self.severity("rm -rf build foo.egg-info 2>/dev/null"))
