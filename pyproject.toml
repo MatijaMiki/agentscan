@@ -30,7 +30,7 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/MatijaMiki/ranwhat"
+Homepage = "https://ranwhat.com"
 Source = "https://github.com/MatijaMiki/ranwhat"
 Issues = "https://github.com/MatijaMiki/ranwhat/issues"
 
