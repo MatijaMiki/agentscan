@@ -32,7 +32,7 @@ jobs:
       - name: Fingerprint static assets
         run: |
           set -euo pipefail
-          for asset in styles.css copy.js; do
+          for asset in styles.css copy.js contact.js; do
             hash=$(sha256sum "site/$asset" | cut -c1-10)
             grep -rlF "/$asset\"" site --include='*.html' \
               | xargs -r sed -i "s|/$asset\"|/$asset?v=$hash\"|g"

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact ranwhat</title>
+<meta name="description" content="Questions about Team or Evidence, a bug in the tool, or anything else. Composes mail in your own client; the site has no form backend.">
+<link rel="canonical" href="https://ranwhat.com/contact.html">
+<meta name="color-scheme" content="light dark">
+<meta name="google-site-verification" content="H1pSrDiEFJ3SkWLLIC7Az4ghrC-IIj-kqINttylIULo">
+<link rel="icon" href="/favicon-32.png?v=2" sizes="32x32" type="image/png">
+<link rel="icon" href="/favicon-16.png?v=2" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#edeff1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1318" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ranwhat">
+<meta property="og:url" content="https://ranwhat.com/contact.html">
+<meta property="og:title" content="Contact ranwhat">
+<meta property="og:description" content="Questions about Team or Evidence, a bug in the tool, or anything else. Composes mail in your own client; the site has no form backend.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Contact ranwhat">
+<meta name="twitter:description" content="Questions about Team or Evidence, a bug in the tool, or anything else. Composes mail in your own client; the site has no form backend.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<header>
+  <div class="shell nav">
+    <a class="wordmark" href="/">ran<i>what</i></a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/watch.html">Watch</a>
+      <a href="/clean.html">Clean</a>
+      <a href="/scan.html">Scan</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html" aria-current="page">Contact</a>
+    </nav>
+    <a class="ghost" href="https://github.com/MatijaMiki/ranwhat">GitHub</a>
+  </div>
+</header>
+
+<main id="top">
+<section class="pagehead">
+  <div class="shell band">
+    <p class="eyebrow">Contact</p>
+    <h1>Tell us what you need.</h1>
+    <p class="lede">
+      Whether that's a tier that isn't built yet, a finding the tool got
+      wrong, or a question the site doesn't answer.
+    </p>
+  </div>
+</section>
+
+<section class="mark-1">
+  <div class="shell band split">
+    <div class="marginal">01 / Write</div>
+    <div>
+      <h2>No form backend, by design.</h2>
+      <p class="lede">
+        This composes the message in your own mail app. Nothing is posted to a
+        server, nothing is logged here, and there is no third party in the
+        middle. It would be odd to run a contact form on a site whose whole
+        argument is that data should stay where it was made.
+      </p>
+
+      <form class="form" id="contact-form" novalidate>
+        <label for="about">What is this about?</label>
+        <select id="about" name="about">
+          <option value="team">Team: the continuous watchdog</option>
+          <option value="evidence">Evidence: records that hold up outside</option>
+          <option value="bug">Something the tool got wrong</option>
+          <option value="other">Something else</option>
+        </select>
+
+        <label for="agents">How many agents, roughly? <span class="opt">optional</span></label>
+        <input id="agents" name="agents" type="text" inputmode="numeric"
+               placeholder="e.g. 12, or leave blank">
+
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="7"
+          placeholder="What are you trying to find out?"></textarea>
+
+        <button class="act" type="submit">Open in your mail app &rarr;</button>
+        <p class="fnote" id="form-note">
+          Your mail app opens with this filled in. You send it, so you see
+          exactly what leaves.
+        </p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="mark-2">
+  <div class="shell band split">
+    <div class="marginal">02 / Direct</div>
+    <div>
+      <h2>Or just write to us.</h2>
+      <p class="lede">
+        If the form is in your way, the address is the address.
+      </p>
+      <div class="cmd" style="max-width:420px">
+        <span id="contact-address">hello@ranwhat.com</span>
+        <button class="copy" data-copy="#contact-address">Copy</button>
+      </div>
+      <div class="rows" style="margin-top:30px">
+        <div class="row"><span class="k">Bugs</span>
+          <span class="v">A GitHub issue is better than an email: it is public,
+            searchable, and the fix lands next to it.
+            <a href="https://github.com/MatijaMiki/ranwhat/issues">Open an issue &rarr;</a></span></div>
+        <div class="row"><span class="k">Security</span>
+          <span class="v">If you have found something that should not be public,
+            write to the address above and say so in the subject. Please do not
+            open a public issue first.</span></div>
+        <div class="row"><span class="k">Reply time</span>
+          <span class="v">One person builds this, so a day or two is normal and
+            a week is not. If you hear nothing, write again.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="shell">
+    <div class="fgrid">
+      <div>
+        <a class="wordmark" href="/" style="font-size:16px">ran<i>what</i></a>
+        <p class="fnote">
+          A flight recorder for AI agents, and a scanner for the authority they
+          hold. Reads locally, transmits nothing.
+        </p>
+        <p class="byline">Built by <span>cenner</span></p>
+      </div>
+      <div>
+        <h4>Commands</h4>
+        <ul>
+          <li><a href="/watch.html">watch: what it did</a></li>
+          <li><a href="/clean.html">clean: secrets on disk</a></li>
+          <li><a href="/scan.html">scan: what it may do</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Docs</h4>
+        <ul>
+          <li><a href="/install.html">Install</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat#readme">README</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <ul>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/pricing.html">Pricing</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat">Repository</a></li>
+          <li><a href="https://github.com/MatijaMiki/ranwhat/issues">Issues</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fbase">
+      <span>cenner</span>
+      <span>ranwhat.com</span>
+      <span>Runs locally &middot; transmits nothing</span>
+      <span>Python 3.9+ &middot; no dependencies</span>
+    </div>
+  </div>
+</footer>
+<script src="/copy.js" defer></script>
+<script src="/contact.js" defer></script>
+</body>
+</html>

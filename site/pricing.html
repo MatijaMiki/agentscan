@@ -39,6 +39,7 @@
       <a href="/scan.html">Scan</a>
       <a href="/pricing.html" aria-current="page">Pricing</a>
       <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
     </nav>
     <a class="ghost" href="https://github.com/MatijaMiki/ranwhat">GitHub</a>
   </div>
@@ -79,23 +80,26 @@
 
       <div class="plan feature">
         <div class="tier">Team</div>
-        <div class="price">$30<small> / agent / month</small></div>
-        <p class="who">When more than one machine runs agents and you want one view of all of them.</p>
+        <div class="price">$12<small> / agent / month</small></div>
+        <p class="who">When agents run on more than one machine, and nobody is going to check a report by hand every morning.</p>
         <ul>
           <li>Everything in Local</li>
+          <li><strong>A watchdog that runs continuously</strong>, rather than
+              waiting for someone to remember to run a scan</li>
+          <li>Slack or email the moment something crosses your threshold,
+              by severity</li>
           <li>Action records collected across machines and CI</li>
           <li>13-month retention</li>
-          <li>Alerts to Slack or email, by severity</li>
           <li>Authority drift alerts when an agent's scopes widen</li>
           <li>Unlimited seats; you are billed on agents, not people</li>
           <li>Collector is open source and runs in your network</li>
         </ul>
-        <a class="act" href="mailto:hello@ranwhat.com?subject=ranwhat%20Team">Start a trial</a>
+        <a class="act" href="/contact.html?about=team">Start a trial</a>
       </div>
 
       <div class="plan">
         <div class="tier">Evidence</div>
-        <div class="price">From $1,250<small> / month</small></div>
+        <div class="price">Contact us<small> · annual</small></div>
         <p class="who">When someone outside the company is going to ask what your agent did.</p>
         <ul>
           <li>Everything in Team</li>
@@ -105,7 +109,7 @@
           <li>Public Agent Trust Page for your own sales cycles</li>
           <li>Named contact, annual billing</li>
         </ul>
-        <a class="act quiet" href="mailto:hello@ranwhat.com?subject=ranwhat%20Evidence">Talk to us</a>
+        <a class="act quiet" href="/contact.html?about=evidence">Talk to us</a>
       </div>
 
     </div>
@@ -172,9 +176,12 @@
       <div class="note" style="margin-top:22px">
         <h3>Honest status</h3>
         <p>Local ships today and is what the GitHub repository contains. Team
-           and Evidence are being built, and these prices are what they will
-           launch at. If you want either now, you'd be an early customer
-           shaping them, and you should expect to be treated like one.</p>
+           and Evidence are being built. The continuous watchdog, the
+           cross-machine collector and the hash-chained records are not
+           written yet; everything listed under Local is, and you can read it
+           on GitHub today. These prices are what the paid tiers will launch
+           at. If you want either now, you'd be an early customer shaping
+           them, and you should expect to be treated like one.</p>
       </div>
     </div>
   </div>
@@ -186,7 +193,7 @@
   <div class="shell">
     <div class="fgrid">
       <div>
-        <a class="wordmark" href="index.html" style="font-size:16px">ran<i>what</i></a>
+        <a class="wordmark" href="/" style="font-size:16px">ran<i>what</i></a>
         <p class="fnote">
           A flight recorder for AI agents, and a scanner for the authority they
           hold. Reads locally, transmits nothing.
@@ -194,28 +201,28 @@
         <p class="byline">Built by <span>cenner</span></p>
       </div>
       <div>
-        <h4>Product</h4>
+        <h4>Commands</h4>
         <ul>
-          <li><a href="/watch.html">What it finds</a></li>
-          <li><a href="/watch.html">Precision</a></li>
-          <li><a href="/watch.html">Sources</a></li>
-          <li><a href="/scan.html">Authority scan</a></li>
+          <li><a href="/watch.html">watch: what it did</a></li>
+          <li><a href="/clean.html">clean: secrets on disk</a></li>
+          <li><a href="/scan.html">scan: what it may do</a></li>
         </ul>
       </div>
       <div>
         <h4>Docs</h4>
         <ul>
           <li><a href="/install.html">Install</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat#readme">README</a></li>
-          <li><a href="https://github.com/MatijaMiki/ranwhat/tree/main/tests">Test suite</a></li>
-          <li><a href="/privacy.html">Data boundary</a></li>
         </ul>
       </div>
       <div>
         <h4>Project</h4>
         <ul>
-          <li><a href="about.html">About</a></li>
-          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/pricing.html">Pricing</a></li>
+          <li><a href="/contact.html">Contact</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat">Repository</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat/issues">Issues</a></li>
         </ul>
@@ -224,8 +231,8 @@
     <div class="fbase">
       <span>cenner</span>
       <span>ranwhat.com</span>
-      <span>Runs locally · transmits nothing</span>
-      <span>Python 3.9+ · no dependencies</span>
+      <span>Runs locally &middot; transmits nothing</span>
+      <span>Python 3.9+ &middot; no dependencies</span>
     </div>
   </div>
 </footer>

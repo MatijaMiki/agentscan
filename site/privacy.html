@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Data boundary | ranwhat</title>
-<meta name="description" content="Nothing leaves the machine. Not a policy, an architecture: anything touching a secret runs locally, and introspection talks only to the credential's own issuer.">
+<title>Privacy | ranwhat</title>
+<meta name="description" content="What the tool does with your data, and what this website collects: no cookies, no analytics, no form backend, and nothing sent when you install or run it.">
 <link rel="canonical" href="https://ranwhat.com/privacy.html">
 <meta name="color-scheme" content="light dark">
 <meta name="google-site-verification" content="H1pSrDiEFJ3SkWLLIC7Az4ghrC-IIj-kqINttylIULo">
@@ -17,11 +17,11 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ranwhat">
 <meta property="og:url" content="https://ranwhat.com/privacy.html">
-<meta property="og:title" content="Data boundary | ranwhat">
-<meta property="og:description" content="Nothing leaves the machine. Not a policy, an architecture: anything touching a secret runs locally, and introspection talks only to the credential's own issuer.">
+<meta property="og:title" content="Privacy | ranwhat">
+<meta property="og:description" content="What the tool does with your data, and what this website collects: no cookies, no analytics, no form backend, and nothing sent when you install or run it.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Data boundary | ranwhat">
-<meta name="twitter:description" content="Nothing leaves the machine. Not a policy, an architecture: anything touching a secret runs locally, and introspection talks only to the credential's own issuer.">
+<meta name="twitter:title" content="Privacy | ranwhat">
+<meta name="twitter:description" content="What the tool does with your data, and what this website collects: no cookies, no analytics, no form backend, and nothing sent when you install or run it.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/styles.css">
@@ -38,6 +38,7 @@
       <a href="/scan.html">Scan</a>
       <a href="/pricing.html">Pricing</a>
       <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
     </nav>
     <a class="ghost" href="https://github.com/MatijaMiki/ranwhat">GitHub</a>
   </div>
@@ -46,7 +47,7 @@
 <main id="top">
 <section class="mark-1"  >
   <div class="shell band split">
-    <div class="marginal">05 / Boundary</div>
+    <div class="marginal">01 / Boundary</div>
     <div>
       <h2>Nothing leaves the machine.</h2>
       <p class="lede">
@@ -68,6 +69,70 @@
           <span class="v">Scans introspect scopes. They never exercise a permission, and never request a write-scoped credential to run.</span></div>
         <div class="row"><span class="k">Auditable</span>
           <span class="v">Pure Python standard library. No dependency tree to review before you point it at your own keys.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mark-2">
+  <div class="shell band split">
+    <div class="marginal">02 / This website</div>
+    <div>
+      <h2>And what ranwhat.com collects.</h2>
+      <p class="lede">
+        The section above is about the tool. This one is about the site you are
+        reading, which is a separate question with a shorter answer.
+      </p>
+
+      <div class="rows" style="margin-top:8px">
+        <div class="row"><span class="k">Who</span>
+          <span class="v">Matija Mikulinec, trading as cenner, Croatia. Reachable
+            at <span class="icode">hello@ranwhat.com</span>, which is also how you
+            exercise anything below.</span></div>
+        <div class="row"><span class="k">Cookies</span>
+          <span class="v">None. No analytics, no tracking pixels, no consent
+            banner, because there is nothing to consent to.</span></div>
+        <div class="row"><span class="k">Forms</span>
+          <span class="v">The contact page has no backend. It opens a message in
+            your own mail app, so nothing is submitted to this site and nothing
+            is stored here.</span></div>
+        <div class="row"><span class="k">Server logs</span>
+          <span class="v">Cloudflare sits in front of the site and GitHub Pages
+            serves it. Both log request metadata, including your IP address, to
+            deliver pages and absorb abuse. That is our legitimate interest in
+            running a website, and neither log is used to profile anyone.</span></div>
+        <div class="row"><span class="k">Fonts</span>
+          <span class="v">Typefaces load from Google Fonts, so your IP address
+            reaches Google in the United States when a page renders. We are
+            moving these onto our own servers to remove that hop.</span></div>
+        <div class="row"><span class="k">Email</span>
+          <span class="v">If you write to us we keep the message and your address
+            for as long as the conversation is useful, and delete it when it is
+            not. We do not add you to any list.</span></div>
+      </div>
+
+      <div class="grid2" style="margin-top:30px">
+        <div class="cell">
+          <h3>Your rights</h3>
+          <p>Under the GDPR you can ask what we hold about you, correct it, have
+             it deleted, or object to it being processed at all. Write to the
+             address above. If we handle that badly you can complain to AZOP,
+             the Croatian data protection authority.</p>
+        </div>
+        <div class="cell">
+          <h3>Changes</h3>
+          <p>When this notice changes the commit history shows exactly what
+             changed and when, which is more than most privacy pages can
+             offer. It lives in the same public repository as the site.</p>
+        </div>
+      </div>
+
+      <div class="note" style="margin-top:26px">
+        <h3>The install is not tracked</h3>
+        <p>Installing or running ranwhat sends us nothing. There is no licence
+           check, no version ping, no crash reporter. We do not know how many
+           people use it, which is occasionally inconvenient and entirely the
+           point.</p>
       </div>
     </div>
   </div>
@@ -97,7 +162,7 @@
         <h4>Docs</h4>
         <ul>
           <li><a href="/install.html">Install</a></li>
-          <li><a href="/privacy.html">Data boundary</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
           <li><a href="/faq.html">FAQ</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat#readme">README</a></li>
         </ul>
@@ -107,6 +172,7 @@
         <ul>
           <li><a href="/about.html">About</a></li>
           <li><a href="/pricing.html">Pricing</a></li>
+          <li><a href="/contact.html">Contact</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat">Repository</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat/issues">Issues</a></li>
         </ul>
@@ -115,8 +181,8 @@
     <div class="fbase">
       <span>cenner</span>
       <span>ranwhat.com</span>
-      <span>Runs locally · transmits nothing</span>
-      <span>Python 3.9+ · no dependencies</span>
+      <span>Runs locally &middot; transmits nothing</span>
+      <span>Python 3.9+ &middot; no dependencies</span>
     </div>
   </div>
 </footer>
