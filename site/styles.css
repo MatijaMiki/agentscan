@@ -1,12 +1,11 @@
 :root{
-  /* Light: cool paper. There is no brand accent -- the only colour on the
-     page is semantic severity, which is the same restraint the tool applies
-     to its own reports. --brand exists so the wordmark and links have one
-     token to follow, and it points at the same red. */
+  /* Light: cool paper. The accent is salmon, matching dark mode -- darkened
+     to #b8482d because #ea8471 measures 2.27:1 on this ground and is
+     unreadable. Severity stays separate and semantic. */
   --ground:#edeff1; --surface:#ffffff; --raise:#f7f8f9;
   --ink:#12171c; --ink-2:#39434e; --muted:#5a6672; --faint:#8b95a1;
   --rule:#d5dae0; --rule-2:#e4e8ec;
-  --brand:#b02a1e; --brand-bg:#f7e9e7;
+  --brand:#b8482d; --brand-bg:#fbeeea;
   --crit:#b02a1e; --crit-bg:#f7e9e7;
   --warn:#8a5a00; --warn-bg:#f8f0df;
   --ok:#1b6b4a;   --ok-bg:#e6f0eb;
@@ -19,8 +18,7 @@
     --ink:#e9edf0; --ink-2:#c2cad2; --muted:#8e99a4; --faint:#6a747e;
     --rule:#242C34; --rule-2:#1A2127;
     --brand:#ea8471; --brand-bg:#2a1714;
-    --brand:#ea8471; --brand-bg:#2a1714;
-  --crit:#ea8471; --crit-bg:#2a1714;
+    --crit:#ea8471; --crit-bg:#2a1714;
     --warn:#d7a44f; --warn-bg:#271e10;
     --ok:#72c69d;   --ok-bg:#12241c;
     --info:#8db4dd;  --info-bg:#141e29;
