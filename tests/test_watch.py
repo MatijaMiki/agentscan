@@ -211,3 +211,63 @@ class EnvironmentIsReadWhenAsked(unittest.TestCase):
                 os.environ.pop("OPENCLAW_STATE_DIR", None)
             else:
                 os.environ["OPENCLAW_STATE_DIR"] = before
+
+
+class CredentialAccessIsJudgedByPathAndCommand(unittest.TestCase):
+    """Every case here came from running against a working machine, where the
+    rule fired 100+ times and was almost entirely wrong."""
+
+    def sev(self, command):
+        hits, _ = watch.evaluate("Bash", {"command": command})
+        return hits[0]["severity"] if hits else None
+
+    def test_templates_hold_placeholders_not_secrets(self):
+        for cmd in ("cat .env.example", "sed -n 1,20p .env.example",
+                    "cp .env.example .env && npx prisma generate",
+                    "cat config.sample", "cat .env.template"):
+            self.assertIsNone(self.sev(cmd), cmd)
+
+    def test_public_keys_are_public(self):
+        self.assertIsNone(self.sev("cat ~/.ssh/id_ed25519.pub"))
+        self.assertEqual(self.sev("cat ~/.ssh/id_ed25519"), watch.CRITICAL)
+
+    def test_commands_that_never_read_contents(self):
+        for cmd in ("ls -la .env.local*", "ls .env* 2>/dev/null",
+                    "cp .env.local .env.local.bak",
+                    "mv .env.local.bak .env.local",
+                    "git check-ignore .env.local",
+                    "git ls-files --error-unmatch .env.local.example"):
+            self.assertIsNone(self.sev(cmd), cmd)
+
+    def test_naming_a_file_to_exclude_it_is_not_reading_it(self):
+        self.assertIsNone(self.sev(
+            "rsync -a --exclude .env --exclude '*.log' src/ dst/"))
+
+    def test_redacting_while_reading_is_care_not_exposure(self):
+        self.assertEqual(self.sev("sed -E 's/=.*/=<set>/' .env"), watch.MEDIUM)
+
+    def test_actually_reading_a_secret_still_reports(self):
+        for cmd in ("cat .env", "cat api/.env", "cat ~/.aws/credentials"):
+            self.assertEqual(self.sev(cmd), watch.CRITICAL, cmd)
+
+
+class RepeatedCallsAreReportedOnce(unittest.TestCase):
+
+    def test_scan_all_deduplicates(self):
+        """A resumed session or a sidechain replays the same tool call into
+        another transcript, and it was reported once per copy."""
+        import json
+        import tempfile
+        root = tempfile.mkdtemp(prefix="dedup-")
+        entry = json.dumps({
+            "timestamp": "2026-09-01T10:00:00Z",
+            "message": {"content": [{"type": "tool_use", "name": "Bash",
+                                     "input": {"command": "rm -rf ~/archive"}}]}})
+        for name in ("a", "b"):
+            d = os.path.join(root, "proj-%s" % name)
+            os.makedirs(d)
+            with open(os.path.join(d, "s.jsonl"), "w") as fh:
+                fh.write(entry + "\n")
+        records, scanned = watch.scan_all(root=root)
+        self.assertEqual(scanned, 2)
+        self.assertEqual(len(records), 1)

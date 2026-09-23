@@ -184,7 +184,74 @@ def _refine_deletion(text, severity):
     return severity
 
 
-REFINERS = {"fs.destructive": _refine_deletion}
+# ---------------------------------------------------------------------------
+# Credential access: what is being touched, and how.
+#
+# On a lightly used machine this rule looked fine. On a working one it fired
+# on .env.example (a template with no secrets in it), on a PUBLIC ssh key, on
+# `rsync --exclude .env` (which is the agent protecting the file), and on
+# `git check-ignore`, which reads nothing at all.
+# ---------------------------------------------------------------------------
+
+# Templates ship in the repo on purpose and hold placeholder values.
+_NOT_SECRET_SUFFIXES = (".example", ".sample", ".template", ".dist",
+                        ".defaults", ".pub")
+
+_CRED_PATH = re.compile(
+    r"(?:^|[\s\"'=(])((?:[\w./~$-]*/)?(?:\.env[\w.-]*|credentials|"
+    r"\.netrc|id_[a-z0-9]+(?:\.pub)?|[\w.-]*\.pem|[\w.-]*\.key))",
+    re.I)
+
+# Commands that handle a file without ever reading its contents.
+_NON_READING = re.compile(
+    r"^\s*(?:sudo\s+)?(?:ls|ll|stat|file|test|\[|cp|mv|rm|touch|chmod|chown|"
+    r"mkdir|basename|dirname|realpath|readlink|du|wc)\b")
+_GIT_METADATA = re.compile(r"^\s*(?:sudo\s+)?git\s+(?:check-ignore|ls-files|status|add)\b")
+
+_KEY_PREFIX = re.compile(r"^\s*(?:command|file_path|path|pattern|args?)\s+")
+
+# The command redacts as it goes -- that is care, not exposure.
+_REDACTING = re.compile(
+    r"s[/|#;,]\s*=\.\*|=<(?:set|redacted|present)>|:\*\*\*|<redacted"
+    r"|sed[^|;&]*\bs[/|#;,][^|;&]*\*\*\*", re.I)
+
+
+def _cred_targets(text):
+    return [m.group(1) for m in _CRED_PATH.finditer(text)]
+
+
+def _refine_credential(text, severity):
+    targets = _cred_targets(text)
+    if not targets:
+        return severity
+
+    real = []
+    for t in targets:
+        base = t.rstrip("/").split("/")[-1].lower()
+        if base.endswith(_NOT_SECRET_SUFFIXES):
+            continue                      # template or public key
+        if re.search(r"--exclude(?:=|\s+)['\"]?%s" % re.escape(t), text):
+            continue                      # named only in order to be skipped
+        real.append(t)
+
+    if not real:
+        return None
+
+    # Which segment actually touched it?
+    for segment in _SPLIT_OPS.split(text):
+        if not any(t in segment for t in real):
+            continue
+        segment = _KEY_PREFIX.sub("", segment)
+        if _NON_READING.match(segment) or _GIT_METADATA.match(segment):
+            continue                      # moved, listed, or asked about
+        if _REDACTING.search(segment):
+            return MEDIUM                 # read, but deliberately masked
+        return severity
+    return None
+
+
+REFINERS = {"fs.destructive": _refine_deletion,
+            "cred.read": _refine_credential}
 
 
 RULES = [
@@ -510,12 +577,24 @@ def discover(root=CLAUDE_PROJECTS, since_days=None):
 
 
 def scan_all(root=CLAUDE_PROJECTS, since_days=None, limit=None):
-    records, scanned = [], 0
+    """Scan every transcript, reporting each distinct action once.
+
+    The same tool call appears in more than one transcript -- resumed
+    sessions and sidechains both replay it -- so without this the report
+    shows the identical command two and three times.
+    """
+    records, scanned, seen = [], 0, set()
     for path in discover(root, since_days):
         if limit and scanned >= limit:
             break
-        records.extend(scan_transcript(path))
         scanned += 1
+        for record in scan_transcript(path):
+            key = (record["tool_name"], record["payload_hash"],
+                   record.get("timestamp"))
+            if key in seen:
+                continue
+            seen.add(key)
+            records.append(record)
     records.sort(key=lambda r: r.get("timestamp") or "", reverse=True)
     return records, scanned
 
