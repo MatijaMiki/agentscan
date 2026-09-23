@@ -311,6 +311,23 @@ footer{border-top:1px solid var(--rule);background:var(--surface)}
 .cell p.more{margin:12px 0 0}
 .cell p.more a{white-space:nowrap}
 
+/* A disclosure for the registered details. Worth being clear with anyone
+   reading this file: it is tidiness, not protection. The text ships in the
+   HTML either way, so a scraper reading the source sees all of it. */
+.reveal{margin-top:10px}
+.reveal summary{
+  display:inline-block;cursor:pointer;list-style:none;
+  font-family:"IBM Plex Mono",Menlo,monospace;font-size:11.5px;
+  letter-spacing:.06em;color:var(--muted);
+  border-bottom:1px dotted var(--rule-2);padding-bottom:1px;
+}
+.reveal summary::-webkit-details-marker{display:none}
+.reveal summary::after{content:" +";color:var(--faint)}
+.reveal[open] summary::after{content:" \2212"}
+.reveal summary:hover{color:var(--ink)}
+.reveal-body{margin-top:10px;padding-left:12px;border-left:1px solid var(--rule-2)}
+.reveal-body p{margin:0 0 4px;font-size:13.5px;color:var(--muted);max-width:44ch}
+
 /* ---------- contact form ---------- */
 .form{margin-top:26px;max-width:560px;display:flex;flex-direction:column;gap:6px}
 .form label{font-family:"IBM Plex Mono",Menlo,monospace;font-size:11px;
