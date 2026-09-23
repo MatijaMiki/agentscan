@@ -115,6 +115,16 @@ ranwhat> keep 3         leave it alone
 ranwhat> rotate         what to rotate, grouped by provider
 ```
 
+Each finding says where it came from — the file it was read out of and the
+project that file belongs to — because a 64-character string is useless
+without knowing which `.env` it escaped:
+
+```
+* AWS access key ID   AKI…WB  20 chars  seen 8x
+      read from api/.env
+      in         /Users/you/Desktop/app
+```
+
 **Redaction is not remediation.** Masking a value here does not un-expose it —
 it was already on disk and already sat in a model context you do not control.
 The rotation is the fix; masking only stops it leaking a second time. The

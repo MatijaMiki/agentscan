@@ -93,6 +93,47 @@ def _worth_scanning(text):
     return any(token in text for token in _CHEAP)
 
 
+# Claude Code names a project directory by flattening its path with dashes,
+# which is ambiguous the moment a directory name contains one: the slug
+# -Users-me-Desktop-birthday-planner could be .../birthday-planner or
+# .../birthday/planner. Resolved by asking the filesystem.
+def project_path(slug):
+    if not slug.startswith("-"):
+        return slug
+    parts = slug[1:].split("-")
+    path = ""
+    i = 0
+    while i < len(parts):
+        for take in range(len(parts) - i, 0, -1):
+            candidate = path + "/" + "-".join(parts[i:i + take])
+            if os.path.isdir(candidate):
+                path = candidate
+                i += take
+                break
+        else:
+            # Past the part that exists on this machine, the remainder is
+            # most likely one directory name that happens to contain dashes.
+            path = path + "/" + "-".join(parts[i:])
+            break
+    return path or slug
+
+
+# Paths whose contents are credentials, used to attribute a secret to the
+# file it was read out of.
+_ORIGIN = re.compile(
+    r"((?:[\w./~$-]*/)?(?:\.env[\w.-]*|credentials|\.netrc|"
+    r"id_[a-z0-9]+|[\w.-]*\.pem|[\w.-]*\.key))", re.I)
+
+
+def _origins(text):
+    out = []
+    for m in _ORIGIN.finditer(text or ""):
+        v = m.group(1)
+        if not v.lower().endswith((".example", ".sample", ".template", ".pub")):
+            out.append(v)
+    return out
+
+
 def _fingerprint(value):
     return hashlib.sha256(value.encode("utf-8", "replace")).hexdigest()[:12]
 
@@ -230,6 +271,8 @@ def scan_file(path, apply=False, only=None):
     rewritten = []
     changed = False
 
+    recent_origin = []          # most recent credential path seen in this file
+
     def collect(value, label):
         entry = findings.setdefault(_fingerprint(value), {
             "fingerprint": _fingerprint(value),
@@ -237,9 +280,14 @@ def scan_file(path, apply=False, only=None):
             "length": len(value),
             "hint": value[:3] + "…" + value[-2:] if len(value) > 10 else "…",
             "files": set(),
+            "origins": set(),
+            "projects": set(),
             "count": 0,
         })
         entry["files"].add(path)
+        entry["projects"].add(project_path(os.path.basename(os.path.dirname(path))))
+        if recent_origin:
+            entry["origins"].add(recent_origin[-1])
         entry["count"] += 1
 
     try:
@@ -254,6 +302,9 @@ def scan_file(path, apply=False, only=None):
                 except ValueError:
                     rewritten.append(line)
                     continue
+                for o in _origins(stripped):
+                    recent_origin.append(o)
+                del recent_origin[:-4]
                 new = _walk(obj, collect, replace=apply, only=only)
                 if apply and new != obj:
                     changed = True
@@ -305,6 +356,8 @@ def scan(root=CLAUDE_PROJECTS, since_days=None, apply=False, progress=None):
         for fp, entry in findings.items():
             if fp in merged:
                 merged[fp]["files"] |= entry["files"]
+                merged[fp]["origins"] |= entry["origins"]
+                merged[fp]["projects"] |= entry["projects"]
                 merged[fp]["count"] += entry["count"]
             else:
                 merged[fp] = entry
@@ -334,13 +387,15 @@ def render(findings, scanned, changed_files, applied):
     L.append("")
 
     for f in sorted(findings.values(), key=lambda x: -x["count"]):
-        where = sorted(f["files"])
         L.append("  " + RED("* ") + BOLD(f["label"])
                  + DIM("   %s  %d chars  seen %dx" % (f["hint"], f["length"], f["count"])))
-        for path in where[:3]:
-            L.append(DIM("      %s" % os.path.basename(os.path.dirname(path))))
-        if len(where) > 3:
-            L.append(DIM("      … and %d more transcript(s)" % (len(where) - 3)))
+        for origin in sorted(f.get("origins") or [])[:2]:
+            L.append(DIM("      read from ") + CYA(origin))
+        projects = sorted(f.get("projects") or [])
+        for proj in projects[:2]:
+            L.append(DIM("      in         %s" % proj))
+        if len(projects) > 2:
+            L.append(DIM("      in         … and %d more project(s)" % (len(projects) - 2)))
     L.append("")
 
     if applied:
@@ -476,8 +531,13 @@ def review(findings, scanned, stream=None):
                 _print(DIM("      length     : %d characters" % target["length"]))
                 _print(DIM("      occurrences: %d" % target["count"]))
                 _print(DIM("      rotate at  : %s" % _provider_for(target["label"])))
+                for origin in sorted(target.get("origins") or []):
+                    _print(DIM("      read from  : ") + origin)
+                for proj in sorted(target.get("projects") or []):
+                    _print(DIM("      project    : %s" % proj))
+                _print(DIM("      transcripts:"))
                 for path in sorted(target["files"]):
-                    _print(DIM("      %s" % path))
+                    _print(DIM("        %s" % path))
                 _print()
             elif cmd == "keep":
                 items.remove(target)

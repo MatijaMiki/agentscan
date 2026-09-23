@@ -166,3 +166,54 @@ class Masking(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class WhereDidItComeFrom(unittest.TestCase):
+    """A 64-character string is useless without knowing which file it came
+    out of and which project that file belongs to."""
+
+    def _project(self, slug, rows):
+        root = tempfile.mkdtemp(prefix="where-")
+        d = os.path.join(root, slug)
+        os.makedirs(d)
+        with open(os.path.join(d, "s.jsonl"), "w") as fh:
+            for r in rows:
+                fh.write(json.dumps(r) + "\n")
+        return root
+
+    def test_secret_is_attributed_to_the_file_it_was_read_from(self):
+        rows = [
+            {"message": {"content": [{"type": "tool_use", "name": "Bash",
+                                      "input": {"command": "cat api/.env"}}]}},
+            {"message": {"content": [{"type": "tool_result",
+                "content": "AWS_ACCESS_KEY_ID=AKIA4TRUE7KEYX9QZ2WB\n"}]}},
+        ]
+        root = self._project("-Users-me-Desktop-app", rows)
+        findings, _s, _c = scan(root=root)
+        entry = list(findings.values())[0]
+        self.assertIn("api/.env", entry["origins"])
+
+    def test_templates_are_not_offered_as_the_origin(self):
+        rows = [
+            {"message": {"content": [{"type": "tool_use", "name": "Bash",
+                                      "input": {"command": "cat .env.example"}}]}},
+            {"message": {"content": [{"type": "tool_result",
+                "content": "AWS_ACCESS_KEY_ID=AKIA4TRUE7KEYX9QZ2WB\n"}]}},
+        ]
+        root = self._project("-Users-me-Desktop-app", rows)
+        findings, _s, _c = scan(root=root)
+        self.assertEqual(list(findings.values())[0]["origins"], set())
+
+    def test_project_slug_resolves_against_the_filesystem(self):
+        from ranwhat.clean import project_path
+        import tempfile as tf
+        base = tf.mkdtemp()
+        os.makedirs(os.path.join(base, "birthday-planner"))
+        slug = base.replace("/", "-") + "-birthday-planner"
+        self.assertEqual(project_path(slug),
+                         os.path.join(base, "birthday-planner"))
+
+    def test_unknown_slug_keeps_dashes_rather_than_splitting_every_one(self):
+        from ranwhat.clean import project_path
+        out = project_path("-nonexistent-root-some-project-name")
+        self.assertTrue(out.endswith("some-project-name"), out)
