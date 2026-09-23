@@ -92,6 +92,27 @@ Capability catalogues for Google, GitHub, Slack, Stripe and AWS. Unrecognised
 scopes are classified by action verb and flagged unclassified — never assumed
 safe.
 
+### `ranwhat clean` — secrets sitting in your transcripts
+
+When an agent runs `cat .env`, the **output** is written into the transcript:
+your database password, your JWT secret, your provider tokens, in plaintext,
+in a file that is never rotated and gets read again by agents later.
+
+```bash
+ranwhat clean               # report only
+ranwhat clean --apply       # mask them, backups written first
+```
+
+**Redaction is not remediation.** Masking a value here does not un-expose it —
+it was already on disk and already sat in a model context you do not control.
+The rotation is the fix; masking only stops it leaking a second time. The
+report says so rather than implying safety.
+
+Only masks a value when the key beside it names it as a secret or the value
+carries a recognisable credential shape. Placeholders, template files and
+ordinary config are left alone. Backups go to `~/.ranwhat/backups`, and the
+rewritten file is parsed back before it replaces the original.
+
 ## Precision is the feature
 
 A watcher that cries wolf gets muted in a day, and a muted watcher records

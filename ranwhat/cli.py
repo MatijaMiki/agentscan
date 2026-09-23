@@ -19,6 +19,7 @@ from .report import render
 from . import introspect
 from . import usage as usage_mod
 from . import watch as watch_mod
+from . import clean as clean_mod
 
 
 def _token(args, provider):
@@ -125,7 +126,7 @@ def _emit(result, args):
 def main(argv=None):
     p = argparse.ArgumentParser(prog="ranwhat",
                                 description="Score an AI agent's authority, observability and reversibility.")
-    p.add_argument("command", choices=["demo", "scan", "live", "watch"])
+    p.add_argument("command", choices=["demo", "scan", "live", "watch", "clean"])
     p.add_argument("profile", nargs="?", help="path to a profile JSON")
     p.add_argument("--json", action="store_true", help="emit raw JSON")
     p.add_argument("--html", metavar="PATH", help="also write an HTML report")
@@ -153,12 +154,27 @@ def main(argv=None):
                    help="watch: OpenClaw state directory (default ~/.openclaw)")
     p.add_argument("--source", action="append", choices=list(watch_mod.SOURCES),
                    help="watch: limit to a source (repeatable; default all)")
+    p.add_argument("--apply", action="store_true",
+                   help="clean: actually mask the secrets found. Without this, "
+                        "clean only reports. Backups are written first.")
     args = p.parse_args(argv)
 
     if args.days is not None and args.days < 1:
         p.error("--days must be at least 1")
     if args.window_days is not None and args.window_days < 1:
         p.error("--window-days must be at least 1")
+
+    if args.command == "clean":
+        findings, scanned, changed = clean_mod.scan(
+            root=args.root, since_days=args.days, apply=args.apply)
+        if args.json:
+            print(json.dumps({"scanned": scanned, "applied": args.apply,
+                              "changed": changed,
+                              "findings": [dict(f, files=sorted(f["files"]))
+                                           for f in findings.values()]}, indent=2))
+        else:
+            print(clean_mod.render(findings, scanned, changed, args.apply))
+        return 0
 
     if args.command == "watch":
         records, n = watch_mod.scan_sources(
