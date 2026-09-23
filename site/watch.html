@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ranwhat watch — what your agents actually ran</title>
+<title>ranwhat watch: what your agents actually ran</title>
 <meta name="description" content="Nine rules covering credential reads, destructive commands, package publishing and exfiltration-shaped pipes. Reads Claude Code and OpenClaw transcripts already on disk. Precision over recall, deliberately.">
 <link rel="canonical" href="https://ranwhat.com/watch.html">
 <meta name="color-scheme" content="light dark">
@@ -17,10 +17,10 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ranwhat">
 <meta property="og:url" content="https://ranwhat.com/watch.html">
-<meta property="og:title" content="ranwhat watch — what your agents actually ran">
+<meta property="og:title" content="ranwhat watch: what your agents actually ran">
 <meta property="og:description" content="Nine rules covering credential reads, destructive commands, package publishing and exfiltration-shaped pipes. Reads Claude Code and OpenClaw transcripts already on disk. Precision over recall, deliberately.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ranwhat watch — what your agents actually ran">
+<meta name="twitter:title" content="ranwhat watch: what your agents actually ran">
 <meta name="twitter:description" content="Nine rules covering credential reads, destructive commands, package publishing and exfiltration-shaped pipes. Reads Claude Code and OpenClaw transcripts already on disk. Precision over recall, deliberately.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,11 +46,11 @@
 <main id="top">
 <section class="mark-1"  >
   <div class="shell band split">
-    <div class="marginal">01 — Detection</div>
+    <div class="marginal">01 / Detection</div>
     <div>
       <h2>Nine things worth interrupting you for.</h2>
       <p class="lede">
-        This isn't antivirus. There's no adversary and no signature — you asked
+        This isn't antivirus. There's no adversary and no signature, because you asked
         the agent to do things. So it doesn't guess whether an action was allowed.
         It raises the ones you'd want to know about either way.
       </p>
@@ -84,7 +84,7 @@
               <td>Recoverable only if something else was backing it up.</td></tr>
           <tr><td><strong>Exfiltration-shaped pipe</strong><br><code>tar … | curl</code></td>
               <td><span class="chip high">High</span></td>
-              <td>File contents sent outbound in one command — that shape, whatever the intent.</td></tr>
+              <td>File contents sent outbound in one command. That shape, whatever the intent.</td></tr>
         </tbody>
       </table>
       </div>
@@ -93,7 +93,7 @@
 </section>
 <section class="mark-2"  >
   <div class="shell band split">
-    <div class="marginal">02 — Precision</div>
+    <div class="marginal">02 / Precision</div>
     <div>
       <h2>A watcher that cries wolf gets muted in a day.</h2>
       <p class="lede">
@@ -108,7 +108,7 @@
         </div>
         <div class="cell">
           <h3 class="mono" style="font-size:13px">python3 -c "…rm -rf…"</h3>
-          <p>The payload is Python source. <code class="icode">bash -c</code> is the exception — that really is shell, so it recurses in.</p>
+          <p>The payload is Python source. <code class="icode">bash -c</code> is the exception: that really is shell, so it recurses in.</p>
         </div>
         <div class="cell">
           <h3 class="mono" style="font-size:13px">cat &gt; f.sh &lt;&lt;'EOF'</h3>
@@ -119,7 +119,7 @@
         <div class="row"><span class="k">On real history</span>
           <span class="v"><strong>15 findings before these rules, 4 after.</strong> Three were false positives; eleven were true deletions of build and temp directories that nobody would want to read.</span></div>
         <div class="row"><span class="k">Evidence</span>
-          <span class="v">Every finding carries surrounding context. <span class="icode">rm -rf</span> on its own tells you nothing — the target is the point.</span></div>
+          <span class="v">Every finding carries surrounding context. <span class="icode">rm -rf</span> on its own tells you nothing. The target is the point.</span></div>
         <div class="row"><span class="k">Test suite</span>
           <span class="v">98 tests, written as invariants rather than expected output.</span></div>
       </div>
@@ -128,7 +128,7 @@
 </section>
 <section class="mark-3"  >
   <div class="shell band split">
-    <div class="marginal">03 — Sources</div>
+    <div class="marginal">03 / Sources</div>
     <div>
       <h2>Reads the agents already on your machine.</h2>
       <p class="lede">
@@ -147,7 +147,7 @@
               <td><code>$OPENCLAW_STATE_DIR/agents/*/…</code></td>
               <td>SQLite, schema discovered at runtime</td>
               <td><span class="chip ok">Shipped</span></td></tr>
-          <tr><td><strong>Codex</strong></td><td class="mono" style="color:var(--faint)">—</td>
+          <tr><td><strong>Codex</strong></td><td class="mono" style="color:var(--faint)">n/a</td>
               <td>Native OpenTelemetry</td>
               <td><span class="chip info">Next</span></td></tr>
           <tr><td><strong>OTLP receiver</strong></td><td class="mono" style="color:var(--faint)">localhost</td>
@@ -160,8 +160,8 @@
         OpenClaw's transcript schema isn't published beyond “append-only,
         tree-structured”. Rather than pin table names that break on the next
         release, the adapter discovers the schema at runtime and recognises tool
-        calls by shape. The database is opened read-only — it belongs to a
-        running agent — and falls back to a copy if that agent holds a WAL lock.
+        calls by shape. The database is opened read-only, since it belongs to a
+        running agent, and falls back to a copy if that agent holds a WAL lock.
       </p>
     </div>
   </div>
@@ -182,9 +182,9 @@
       <div>
         <h4>Commands</h4>
         <ul>
-          <li><a href="/watch.html">watch — what it did</a></li>
-          <li><a href="/clean.html">clean — secrets on disk</a></li>
-          <li><a href="/scan.html">scan — what it may do</a></li>
+          <li><a href="/watch.html">watch: what it did</a></li>
+          <li><a href="/clean.html">clean: secrets on disk</a></li>
+          <li><a href="/scan.html">scan: what it may do</a></li>
         </ul>
       </div>
       <div>

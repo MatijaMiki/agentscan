@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ranwhat clean — secrets sitting in your agent transcripts</title>
+<title>ranwhat clean: secrets sitting in your agent transcripts</title>
 <meta name="description" content="When an agent runs cat .env, the output is written into its transcript in plaintext. ranwhat clean finds those credentials, tells you which to rotate and where, and masks them with a backup first.">
 <link rel="canonical" href="https://ranwhat.com/clean.html">
 <meta name="color-scheme" content="light dark">
@@ -17,10 +17,10 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ranwhat">
 <meta property="og:url" content="https://ranwhat.com/clean.html">
-<meta property="og:title" content="ranwhat clean — secrets sitting in your agent transcripts">
+<meta property="og:title" content="ranwhat clean: secrets sitting in your agent transcripts">
 <meta property="og:description" content="When an agent runs cat .env, the output is written into its transcript in plaintext. ranwhat clean finds those credentials, tells you which to rotate and where, and masks them with a backup first.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ranwhat clean — secrets sitting in your agent transcripts">
+<meta name="twitter:title" content="ranwhat clean: secrets sitting in your agent transcripts">
 <meta name="twitter:description" content="When an agent runs cat .env, the output is written into its transcript in plaintext. ranwhat clean finds those credentials, tells you which to rotate and where, and masks them with a backup first.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,9 +50,9 @@
     <h1>Your agent read your .env. The output is still on disk.</h1>
     <p class="lede">
       When an agent runs <span class="icode">cat .env</span>, the result is written
-      into its transcript in plaintext — your database password, your signing
-      secrets, your provider tokens — in files that are never rotated and get read
-      again by agents later.
+      into its transcript in plaintext: your database password, your signing
+      secrets, your provider tokens, sitting in files that are never rotated and
+      get read again by agents later.
     </p>
     <div class="cmdrow">
       <div class="cmd">
@@ -67,7 +67,7 @@
 
 <section class="mark-1"  >
   <div class="shell band split">
-    <div class="marginal">01 — The point</div>
+    <div class="marginal">01 / The point</div>
     <div>
       <h2>Redaction is not remediation.</h2>
       <p class="lede">
@@ -100,7 +100,7 @@ them leaking again. It does not make them safe.</span>
 
 <section class="mark-2"  >
   <div class="shell band split">
-    <div class="marginal">02 — Review</div>
+    <div class="marginal">02 / Review</div>
     <div>
       <h2>The session stays open.</h2>
       <p class="lede">
@@ -116,8 +116,8 @@ them leaking again. It does not make them safe.</span>
 <span class="c-mut">ranwhat&gt;</span> rotate         <span class="c-mut">grouped by provider</span></pre></div>
       </div>
       <p style="margin-top:22px;font-size:14.5px;color:var(--muted)">
-        <span class="icode">rotate</span> names the place to roll each one — the IAM
-        console, Stripe’s API keys page, BotFather — rather than leaving you to work
+        <span class="icode">rotate</span> names the place to roll each one, whether that’s the IAM
+        console, Stripe’s API keys page or BotFather, rather than leaving you to work
         out where a 64-character string came from.
       </p>
     </div>
@@ -126,7 +126,7 @@ them leaking again. It does not make them safe.</span>
 
 <section class="mark-3"  >
   <div class="shell band split">
-    <div class="marginal">03 — Restraint</div>
+    <div class="marginal">03 / Restraint</div>
     <div>
       <h2>A secret is a literal, not code that mentions one.</h2>
       <p class="lede">
@@ -179,9 +179,9 @@ them leaking again. It does not make them safe.</span>
       <div>
         <h4>Commands</h4>
         <ul>
-          <li><a href="/watch.html">watch — what it did</a></li>
-          <li><a href="/clean.html">clean — secrets on disk</a></li>
-          <li><a href="/scan.html">scan — what it may do</a></li>
+          <li><a href="/watch.html">watch: what it did</a></li>
+          <li><a href="/clean.html">clean: secrets on disk</a></li>
+          <li><a href="/scan.html">scan: what it may do</a></li>
         </ul>
       </div>
       <div>
