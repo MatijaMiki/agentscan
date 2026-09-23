@@ -294,7 +294,7 @@ footer{border-top:1px solid var(--rule);background:var(--surface)}
 
 
 /* ---------- follow ---------- */
-ul.follow{list-style:none;margin:20px 0 0;padding:0;max-width:560px;display:flex;
+ul.follow{list-style:none;margin:20px 0 0;padding:0;display:flex;
   flex-direction:column;gap:1px;background:var(--rule-2);
   border:1px solid var(--rule-2)}
 ul.follow a{display:flex;align-items:baseline;gap:12px;background:var(--surface);
