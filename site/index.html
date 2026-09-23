@@ -88,7 +88,29 @@
 </section>
 <section>
   <div class="shell band split">
-    <div class="marginal">Three commands</div>
+    <div class="marginal">01 — Install</div>
+    <div>
+      <h2>Thirty seconds, no signup.</h2>
+      <p class="lede">
+        Python 3.9 or newer. No dependencies. Point it at your own machine and
+        see what the last month looked like.
+      </p>
+      <div class="cmd" style="max-width:640px">
+        <span class="dollar">$</span>
+        <span id="install-text">uvx --from git+https://github.com/MatijaMiki/ranwhat ranwhat watch</span>
+        <button class="copy" data-copy="#install-text">Copy</button>
+      </div>
+      <p style="margin-top:18px;font-size:14px;color:var(--muted)">
+        Prefer it on your path? <span class="icode">pipx install git+https://github.com/MatijaMiki/ranwhat</span><br>
+        Installing with plain <span class="icode">pip</span> instead? Upgrade it first —
+        the pip macOS ships is too old to read this project's metadata.
+      </p>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="shell band split">
+    <div class="marginal">02 — Commands</div>
     <div>
       <h2>What it did, what leaked, what it may do next.</h2>
       <p class="lede">
@@ -117,36 +139,14 @@
     </div>
   </div>
 </section>
+
 <section id="faq">
 
   <div class="shell band split">
-    <div class="marginal">07 — Questions</div>
+    <div class="marginal">03 — Questions</div>
     <div>
       <h2>The ones worth answering up front.</h2>
       <div class="faqs"><div class="faq"><h3>Does it send anything anywhere?</h3><p>No. The watcher reads transcripts your agents already wrote to disk and prints to your terminal. The scanner talks only to the credential's own issuer when you ask it to introspect a token. There is no telemetry, no account and no server.</p></div><div class="faq"><h3>Does it need my credentials?</h3><p>The watcher needs none at all — point it at your machine and it works. The authority scanner can introspect tokens read-only, but it never exercises a permission and never needs a write-scoped credential. Pass tokens through the environment rather than the command line, because anything in argv is readable by every user on the machine.</p></div><div class="faq"><h3>Which agents does it read?</h3><p>Claude Code and OpenClaw today. Codex and an OTLP receiver are next, which will cover anything emitting OpenTelemetry GenAI spans. It reads files the agent already wrote, so there is no wrapper, no proxy and nothing in your critical path.</p></div><div class="faq"><h3>Will it slow my agent down?</h3><p>No. It runs after the fact against files on disk. Your agent never knows it exists.</p></div><div class="faq"><h3>Is it safe to run clean --apply?</h3><p>It reports by default and changes nothing until you ask. When you do, it writes a timestamped backup first, then parses the rewritten file back before replacing the original, so a transcript is never left corrupted. Ordinary config, templates and placeholders are left alone.</p></div><div class="faq"><h3>If I mask a secret, is it safe now?</h3><p>No, and the tool says so. The value was already written to disk in plaintext and already sat in a model context you do not control. Masking stops it leaking a second time. Rotating it is the actual fix, which is why the report leads with what to rotate and where.</p></div><div class="faq"><h3>How is this different from scanning my agent's config?</h3><p>Tools that scan agent components look at what is installed — MCP servers, skills, configuration — for known-bad content. ranwhat looks at what your agent actually did with the access it has, and what it is still allowed to do next time.</p></div><div class="faq"><h3>What does it cost?</h3><p>Nothing on your own machine, forever, and the code is MIT licensed with no dependencies. Paid tiers exist for collecting records across machines and for evidence retention. We never charge per finding — a tool paid by the alert has a reason to cry wolf.</p></div><div class="faq"><h3>Does it work on Linux and Windows?</h3><p>Linux yes. Windows is untested — it is pure Python with no platform-specific calls, so it will probably work, but nobody has verified it. Tell us if you do.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="shell band split">
-    <div class="marginal">06 — Install</div>
-    <div>
-      <h2>Thirty seconds, no signup.</h2>
-      <p class="lede">
-        Python 3.9 or newer. No dependencies. Point it at your own machine and
-        see what the last month looked like.
-      </p>
-      <div class="cmd" style="max-width:640px">
-        <span class="dollar">$</span>
-        <span id="install-text">uvx --from git+https://github.com/MatijaMiki/ranwhat ranwhat watch</span>
-        <button class="copy" data-copy="#install-text">Copy</button>
-      </div>
-      <p style="margin-top:18px;font-size:14px;color:var(--muted)">
-        Prefer it on your path? <span class="icode">pipx install git+https://github.com/MatijaMiki/ranwhat</span><br>
-        Installing with plain <span class="icode">pip</span> instead? Upgrade it first —
-        the pip macOS ships is too old to read this project's metadata.
-      </p>
     </div>
   </div>
 </section>
@@ -174,7 +174,7 @@
       <div>
         <h4>Docs</h4>
         <ul>
-          <li><a href="/install.html">Install</a></li>
+          <li><a href="/#install">Install</a></li>
           <li><a href="/privacy.html">Data boundary</a></li>
           <li><a href="/faq.html">FAQ</a></li>
           <li><a href="https://github.com/MatijaMiki/ranwhat#readme">README</a></li>
