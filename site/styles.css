@@ -470,7 +470,10 @@ footer{border-top:1px solid var(--rule);background:var(--surface)}
 .form .fnote{margin-top:14px;max-width:46ch}
 @media(max-width:560px){.form .act{align-self:stretch;text-align:center}}
 
-.form .sent{margin:0;color:var(--sp4);font-size:16px;max-width:46ch}
+/* One status line under the button carries all three states. */
+.form .fnote.sent{color:var(--sp4)}
+.form .fnote.sent::before{content:"\2713\00a0\00a0";font-weight:700}
+.form .fnote.warn{color:var(--sp2)}
 .form .act[disabled]{opacity:.55;cursor:default}
 .form .act[disabled]:hover{background:transparent;color:var(--ink)}
 

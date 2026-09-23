@@ -26,7 +26,7 @@ const SUBJECTS = {
   other: "ranwhat enquiry",
 };
 
-const LIMITS = { message: 8000, email: 200, agents: 40 };
+const LIMITS = { message: 8000, email: 200 };
 
 const json = (status, body) =>
   new Response(JSON.stringify(body), {
@@ -66,7 +66,6 @@ async function handleContact(request, env) {
   const topic = SUBJECTS[form.about] ? form.about : "other";
   const message = String(form.message || "").trim();
   const replyTo = header(form.email).slice(0, LIMITS.email);
-  const agents = header(form.agents).slice(0, LIMITS.agents);
 
   if (!message) return json(400, { error: "The message is empty." });
   if (message.length > LIMITS.message) {
@@ -80,10 +79,9 @@ async function handleContact(request, env) {
     message,
     "",
     "--",
-    `about:  ${topic}`,
-    agents ? `agents: ${agents}` : null,
-    `from:   ${replyTo}`,
-  ].filter((l) => l !== null).join("\r\n");
+    `about: ${topic}`,
+    `from:  ${replyTo}`,
+  ].join("\r\n");
 
   const raw = [
     `From: ranwhat.com <${FROM}>`,
