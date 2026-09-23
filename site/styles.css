@@ -55,7 +55,7 @@ section{border-top:1px solid var(--rule)}
 .marginal{
   font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:11px;
   letter-spacing:.11em;text-transform:uppercase;color:var(--faint);
-  padding-top:7px;border-top:2px solid var(--ink);display:inline-block;
+  padding-top:7px;border-top:2.5px solid var(--brand);display:inline-block;
 }
 h2{font-size:clamp(25px,3.1vw,34px);line-height:1.15;letter-spacing:-.022em;
    margin:0 0 14px;font-weight:600;text-wrap:balance}
@@ -160,7 +160,19 @@ h1{font-size:clamp(38px,6.2vw,66px);line-height:1.03;letter-spacing:-.04em;
 .chip.high{background:var(--warn-bg);color:var(--warn)}
 .chip.ok{background:var(--ok-bg);color:var(--ok)}
 .chip.info{background:var(--info-bg);color:var(--info)}
-.marginal{border-top-color:var(--brand)}
+/* Section markers cycle the palette. Assigned explicitly rather than by
+   nth-of-type, because a hero occupies a slot without carrying a marker and
+   the cycle would skip a colour on any page that has one. These are chrome,
+   not findings: the chips stay strictly semantic, because a report has to
+   read at a glance and a decorative green would undo that. */
+.mark-1 .marginal{border-top-color:var(--brand);
+  color:color-mix(in srgb,var(--brand) 60%,var(--faint))}
+.mark-2 .marginal{border-top-color:var(--warn);
+  color:color-mix(in srgb,var(--warn) 60%,var(--faint))}
+.mark-3 .marginal{border-top-color:var(--ok);
+  color:color-mix(in srgb,var(--ok) 60%,var(--faint))}
+.mark-4 .marginal{border-top-color:var(--info);
+  color:color-mix(in srgb,var(--info) 60%,var(--faint))}
 .cell p a,.prose a{color:var(--brand);text-decoration-color:color-mix(in srgb,var(--brand) 40%,transparent);text-underline-offset:2px}
 
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;
