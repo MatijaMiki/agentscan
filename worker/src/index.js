@@ -6,6 +6,10 @@
  * shape a contact form needs and means no third-party mail service, no API key
  * and nothing leaving Cloudflare.
  *
+ * This is a Worker rather than a Pages Function because send_email is not
+ * among the bindings Pages Functions can hold. It is routed onto
+ * ranwhat.com/api/* so the browser still sees one origin and needs no CORS.
+ *
  * A Turnstile token that is never verified is decoration. This is the call that
  * makes the widget mean anything.
  */
@@ -34,7 +38,7 @@ const json = (status, body) =>
    their own, e.g. a Bcc. Strip CR and LF from anything that lands in one. */
 const header = (s) => String(s || "").replace(/[\r\n]+/g, " ").trim();
 
-export async function onRequestPost({ request, env }) {
+async function handleContact(request, env) {
   let form;
   try {
     form = await request.json();
@@ -104,3 +108,17 @@ export async function onRequestPost({ request, env }) {
 
   return json(200, { ok: true });
 }
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.pathname !== "/api/contact") return json(404, { error: "Not found." });
+    if (request.method !== "POST") {
+      return new Response(JSON.stringify({ error: "POST only." }), {
+        status: 405,
+        headers: { "content-type": "application/json; charset=utf-8", allow: "POST" },
+      });
+    }
+    return handleContact(request, env);
+  },
+};
