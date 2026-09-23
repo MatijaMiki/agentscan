@@ -88,10 +88,12 @@
         <textarea id="message" name="message" rows="7"
           placeholder="What are you trying to find out?"></textarea>
 
-        <button class="act" type="submit">Open in your mail app &rarr;</button>
-        <p class="fnote" id="form-note">
-          Your mail app opens with this filled in. You send it, so you see
-          exactly what leaves.
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAABNRE3i-BOA9gTd"
+             data-theme="auto" style="margin-top:22px"></div>
+
+        <button class="act" type="submit" id="send">Send &rarr;</button>
+        <p class="fnote" id="form-note" role="status" aria-live="polite">
+          The challenge above is checked on our side before anything is sent.
         </p>
       </form>
     </div>
