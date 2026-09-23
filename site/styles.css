@@ -76,14 +76,29 @@ header{
 .nav nav{display:flex;gap:22px;margin-left:auto;align-items:center}
 .nav nav a{font-size:14px;color:var(--muted);text-decoration:none}
 .nav nav a:hover{color:var(--ink)}
+.nav nav a[aria-current]{color:var(--ink)}
 .ghost{
   font-family:"IBM Plex Mono",Menlo,monospace;font-size:12.5px;
   border:1px solid var(--ink);padding:6px 13px;text-decoration:none;
   white-space:nowrap;
 }
 .ghost:hover{background:var(--ink);color:var(--ground)}
+/* Six links plus a button do not fit a phone. The wordmark is already the
+   home link, so Home goes first; the commands are what people came for and
+   stay longest. */
 @media(max-width:860px){
-  .nav nav a[data-optional]{display:none}
+  .nav{gap:16px}
+  .nav nav{gap:15px}
+  .nav nav a{font-size:13.5px}
+  .nav nav a[href="/"]{display:none}
+}
+@media(max-width:620px){
+  .nav nav a[href="/about.html"],
+  .nav nav a[href="/pricing.html"]{display:none}
+}
+@media(max-width:430px){
+  .nav nav a[href="/scan.html"]{display:none}
+  .nav nav{gap:12px}
 }
 
 /* ---------- hero ---------- */
