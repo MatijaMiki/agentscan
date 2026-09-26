@@ -83,11 +83,16 @@ async function handleContact(request, env) {
     `from:  ${replyTo}`,
   ].join("\r\n");
 
+  /* The envelope has to come from this domain for SPF and DKIM to align, so
+     the writer's address goes in the display name and the subject instead.
+     Otherwise every submission looks identical in a mailbox list and you have
+     to open it to find out who wrote in. Both values are run through header()
+     first: a newline in either would let someone append headers of their own. */
   const raw = [
-    `From: ranwhat.com <${FROM}>`,
+    `From: ${header(replyTo)} via ranwhat.com <${FROM}>`,
     `To: <${TO}>`,
     `Reply-To: <${replyTo}>`,
-    `Subject: ${header(SUBJECTS[topic])}`,
+    `Subject: ${header(SUBJECTS[topic])} \u00b7 ${header(replyTo)}`,
     `Message-ID: <${crypto.randomUUID()}@ranwhat.com>`,
     `Date: ${new Date().toUTCString()}`,
     "MIME-Version: 1.0",
