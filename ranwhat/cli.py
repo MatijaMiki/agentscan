@@ -24,6 +24,7 @@ from . import watch as watch_mod
 from . import clean as clean_mod
 from . import feed as feed_mod
 from . import catalog as catalog_mod
+from . import term
 
 
 def _token(args, provider):
@@ -130,6 +131,7 @@ def _emit(result, args):
 OVERVIEW = """
   ranwhat  \u00b7 find out what your AI agents actually did
 
+  check    everything on this machine worth knowing about
   watch    what your agents already ran on this machine
   clean    credentials sitting in plaintext in agent transcripts
   scan     the authority a set of credentials carries
@@ -137,8 +139,8 @@ OVERVIEW = """
   update   refresh the capability catalogue (needs a subscription)
 
   Start here:
+    %(cmd)s check
     %(cmd)s demo
-    %(cmd)s watch --days 30
 
   Everything runs locally. No account, and nothing is transmitted.
   Full options: %(cmd)s --help
@@ -219,11 +221,61 @@ def _update(args):
         % (doc.get("version") or "?", len(cat), sum(len(v) for v in cat.values())))
     return 0
 
+def _check(args):
+    """Everything this machine can tell us, in one read-only pass.
+
+    `watch` and `clean` answer two halves of the same question and most people
+    want both on a first run. Asking them to know that, and to run two
+    commands in the right order with the right flags, is knowledge the tool
+    should not require. Nothing is modified: masking stays an explicit choice
+    under `clean`.
+    """
+    records, sources = watch_mod.scan_sources(
+        sources=watch_mod.SOURCES, root=args.root,
+        state_dir=args.state_dir, since_days=args.days)
+
+    def _progress(i, total, path):
+        sys.stderr.write("\r  reading transcripts %d/%d" % (i, total))
+        sys.stderr.flush()
+
+    findings, scanned, _ = clean_mod.scan(
+        root=args.root, since_days=args.days, apply=False, progress=_progress)
+    sys.stderr.write("\r" + " " * 46 + "\r")
+
+    if args.json:
+        print(json.dumps({
+            "days": args.days,
+            "actions": records,
+            "secrets": [dict(f, files=sorted(f["files"]))
+                        for f in findings.values()],
+        }, indent=2))
+        return 0
+
+    print(watch_mod.render(records, sources, args.days))
+    print(clean_mod.render(findings, scanned, 0, False))
+
+    cmd = invocation()
+    steps = []
+    if findings:
+        steps.append(("clean", "review and mask what leaked"))
+    if records:
+        steps.append(("watch --json", "the actions, machine readable"))
+    steps.append(("scan profile.json", "score the authority behind them"))
+    pad = max(len(c) for c, _ in steps)
+    tail = ["  " + term.brand("What to do with this"), ""]
+    for c, why in steps:
+        tail.append("    %s %-*s  %s" % (cmd, pad, c, why))
+    tail += ["", term.rule("-"),
+             "  Read locally. Nothing was transmitted.", ""]
+    print("\n".join(tail))
+    return 0
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="ranwhat",
                                 description="Score an AI agent's authority, observability and reversibility.")
     p.add_argument("command", nargs="?",
-                   choices=["demo", "scan", "live", "watch", "clean", "update"])
+                   choices=["check", "demo", "scan", "live", "watch",
+                            "clean", "update"])
     p.add_argument("profile", nargs="?", help="path to a profile JSON")
     p.add_argument("--json", action="store_true", help="emit raw JSON")
     p.add_argument("--html", metavar="PATH", help="also write an HTML report")
@@ -276,6 +328,9 @@ def main(argv=None):
 
     if args.command == "update":
         return _update(args)
+
+    if args.command == "check":
+        return _check(args)
 
 
     if args.days is not None and args.days < 1:

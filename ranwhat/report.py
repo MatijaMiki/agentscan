@@ -2,6 +2,8 @@
 from __future__ import annotations
 import sys
 
+from . import term
+
 def _c(code, s):
     if not sys.stdout.isatty():
         return s
@@ -26,8 +28,9 @@ def _bar(n, width=24):
 def render(result):
     L = []
     L.append("")
-    L.append(BOLD("  ranwhat  ") + DIM("· agent authority & insurability"))
-    L.append(DIM("  " + "─" * 62))
+    L.append(BOLD("  ") + term.brand(BOLD("ranwhat")) + BOLD("  ")
+             + DIM("· agent authority & insurability"))
+    L.append(DIM(term.rule()))
     L.append("  agent: " + BOLD(result["agent"]))
     L.append("")
 
@@ -37,13 +40,8 @@ def render(result):
     if v.get("composite") is not None:
         L.append("  composite %s/100  grade %s" % (v["composite"], v["grade"]))
     if v["detail"]:
-        body = v["detail"]
-        line = "  "
-        for word in body.split():
-            if len(line) + len(word) > 70:
-                L.append(DIM(line)); line = "  "
-            line += word + " "
-        L.append(DIM(line))
+        for wrapped in term.wrap(v["detail"]):
+            L.append(DIM(wrapped))
     L.append("")
 
     for key, label in (("authority", "Authority    "),
@@ -88,7 +86,7 @@ def render(result):
             L.append(DIM("                   %s" % r["label"]))
         L.append("")
 
-    L.append(DIM("  " + "─" * 62))
+    L.append(DIM(term.rule()))
     L.append(DIM("  No credential, prompt or payload left this machine."))
     L.append("")
     return "\n".join(L)

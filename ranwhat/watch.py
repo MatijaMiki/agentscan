@@ -27,6 +27,8 @@ import sqlite3
 import tempfile
 import time
 
+from . import term
+
 CLAUDE_PROJECTS = os.path.expanduser("~/.claude/projects")
 
 CRITICAL, HIGH, MEDIUM = "critical", "high", "medium"
@@ -603,7 +605,7 @@ def render(records, scanned, days):
     from .report import BOLD, DIM, RED, YEL, CYA, GRN
     colour = {CRITICAL: RED, HIGH: YEL, MEDIUM: CYA}
     L = ["", BOLD("  ranwhat watch  ") + DIM("· local agent flight recorder"),
-         DIM("  " + "-" * 62),
+         DIM(term.rule("-")),
          "  %d source(s) over %d days" % (scanned, days), ""]
     if not records:
         L += ["  " + GRN("Nothing flagged."),
@@ -624,7 +626,7 @@ def render(records, scanned, days):
             L.append(DIM("      %s" % h["evidence"][:96]))
         L.append(DIM("      -> %s" % r["hits"][0]["why"][:92]))
         L.append("")
-    L += [DIM("  " + "-" * 62),
+    L += [DIM(term.rule("-")),
           DIM("  Read locally. Nothing was transmitted."), ""]
     return "\n".join(L)
 

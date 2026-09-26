@@ -28,6 +28,8 @@ import shutil
 
 from .watch import CLAUDE_PROJECTS, discover
 
+from . import term
+
 BACKUP_ROOT = os.path.expanduser("~/.ranwhat/backups")
 REDACTION = "<ranwhat:redacted:%s>"
 
@@ -125,9 +127,26 @@ _ORIGIN = re.compile(
     r"id_[a-z0-9]+|[\w.-]*\.pem|[\w.-]*\.key))", re.I)
 
 
+# _ORIGIN is quadratic on long runs of word characters: its `[\w.-]*\.pem`
+# style alternatives make the engine rescan forward from every position, so
+# 16k characters of ordinary prose cost 1.7 seconds on their own. Agent
+# transcripts are mostly ordinary prose, and one 39MB file took 59 seconds
+# here before this check existed.
+#
+# Every branch of the pattern requires one of these literals, so a substring
+# test that finds none is proof the regex cannot match. The test is linear and
+# in C.
+_ORIGIN_MARKERS = (".env", "credential", ".netrc", "id_", ".pem", ".key")
+
+
 def _origins(text):
+    if not text:
+        return []
+    lowered = text.lower()
+    if not any(marker in lowered for marker in _ORIGIN_MARKERS):
+        return []
     out = []
-    for m in _ORIGIN.finditer(text or ""):
+    for m in _ORIGIN.finditer(text):
         v = m.group(1)
         if not v.lower().endswith((".example", ".sample", ".template", ".pub")):
             out.append(v)
@@ -193,10 +212,39 @@ def _is_placeholder(value):
     return False
 
 
+# Base64 signatures of image formats. Agent transcripts embed every screenshot
+# a user pastes, as strings of several hundred kilobytes. Pixels cannot hold a
+# credential in any sense that matters, and long random-looking base64 can
+# coincidentally match a token shape, so scanning them only ever produced
+# cost and false positives: 4.3 seconds on five screenshots in one file.
+_IMAGE_PREFIXES = (
+    "iVBORw0KGgo",   # PNG
+    "/9j/",          # JPEG
+    "R0lGOD",        # GIF
+    "UklGR",         # WEBP (RIFF)
+    "Qk",            # BMP
+)
+# No credential shape this module recognises is shorter than this.
+_MIN_SECRET_LEN = 16
+
+
+def _is_embedded_image(text):
+    head = text.lstrip()[:16]
+    if not head.startswith(_IMAGE_PREFIXES):
+        return False
+    # A real embedded image is long and contains no whitespace; a short string
+    # that merely starts with these letters is still worth scanning.
+    return len(text) > 1024 and not any(ch in text[:4096] for ch in " \n\t")
+
+
 def find_secrets(text):
     """Return [(secret_value, label)] found in a blob of text."""
     found = []
-    if not text or not _worth_scanning(text):
+    if not text or len(text) < _MIN_SECRET_LEN:
+        return found
+    if _is_embedded_image(text):
+        return found
+    if not _worth_scanning(text):
         return found
     if len(text) > MAX_STRING:
         text = text[:MAX_STRING]
@@ -368,7 +416,7 @@ def render(findings, scanned, changed_files, applied):
     from .report import BOLD, DIM, RED, YEL, GRN, CYA
 
     L = ["", BOLD("  ranwhat clean  ") + DIM("· secrets sitting in local transcripts"),
-         DIM("  " + "-" * 62),
+         DIM(term.rule("-")),
          "  %d transcript(s) scanned" % scanned, ""]
 
     if not findings:
@@ -404,7 +452,7 @@ def render(findings, scanned, changed_files, applied):
     else:
         L.append("  " + YEL("Dry run. Nothing was changed."))
         L.append(DIM("  Run with --apply to mask them. Backups are written first."))
-    L += ["", DIM("  " + "-" * 62),
+    L += ["", DIM(term.rule("-")),
           DIM("  Read locally. Nothing was transmitted."), ""]
     return "\n".join(L)
 
