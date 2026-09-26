@@ -86,7 +86,8 @@ ranwhat live --github "$GH_TOKEN"           # read-only introspection
 ranwhat scan profile.json --pull-usage --stripe "$STRIPE_KEY"
 ```
 
-Capability catalogues for Google, GitHub, Slack, Stripe and AWS. Unrecognised
+Capability catalogues for Google, GitHub, GitLab, Microsoft 365, Slack, Discord, Stripe, Shopify, HubSpot, Atlassian, Sentry and AWS.
+Unrecognised
 scopes are classified by action verb and flagged unclassified, never assumed
 safe.
 

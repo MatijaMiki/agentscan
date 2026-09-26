@@ -332,6 +332,133 @@ CATALOG = {
             "live, and the orders taken at it are already binding."),
     },
 
+    # Verified against developers.hubspot.com, September 2026.
+    "hubspot": {
+        "crm.objects.contacts.read": _s(
+            "Read contact records", READ, True, DATA_EGRESS,
+            "The contact database is the company's relationship list: names, "
+            "emails, phone numbers and every logged interaction."),
+        "crm.objects.contacts.write": _s(
+            "Create and modify contacts", WRITE, False, IDENTITY,
+            "Can change the email address on a contact, which redirects every "
+            "subsequent automated message to an address of its choosing."),
+        "crm.objects.companies.read": _s(
+            "Read company records", READ, True, DATA_EGRESS,
+            "Reveals the customer list, which for most B2B companies is the "
+            "single most commercially sensitive dataset they hold."),
+        "crm.objects.companies.write": _s(
+            "Create and modify companies", WRITE, True, DATA_EGRESS,
+            "Ownership and lifecycle changes reroute who is alerted about an "
+            "account and which automations fire."),
+        "crm.objects.deals.read": _s(
+            "Read deals", READ, True, DATA_EGRESS,
+            "Deal records carry contract values and close dates: the pipeline "
+            "numbers a competitor would most like to have."),
+        "crm.objects.deals.write": _s(
+            "Create and modify deals", FINANCIAL, True, MONETARY,
+            "Deal amounts and stages drive forecasting and commission. Editing "
+            "them changes what the business believes about its own revenue."),
+        "crm.objects.quotes.read": _s(
+            "Read quotes", READ, True, MONETARY,
+            "Quotes are priced offers, including any discount given."),
+        "crm.objects.quotes.write": _s(
+            "Create and modify quotes", FINANCIAL, False, MONETARY,
+            "A quote is a priced offer sent to a customer. Once delivered it "
+            "has been seen, whatever is edited afterwards."),
+        "crm.objects.line_items.write": _s(
+            "Create and modify line items", FINANCIAL, True, MONETARY,
+            "Line items are what a deal is actually charging for, so this is "
+            "price authority one level below the deal total."),
+        "settings.users.write": _s(
+            "Create and modify portal users", DESTRUCTIVE, False, IDENTITY,
+            "Can add users and change permissions, including granting access "
+            "broader than the integration itself holds."),
+        "settings.billing.write": _s(
+            "Change billing settings", FINANCIAL, False, MONETARY,
+            "Alters the subscription the company is charged for."),
+        "files": _s(
+            "Read and write files", WRITE, False, DATA_EGRESS,
+            "HubSpot-hosted files are served from public URLs by default, so "
+            "an upload here is a publishing action."),
+    },
+
+    # Verified against docs.discord.com/developers/topics/oauth2, September 2026.
+    "discord": {
+        "identify": _s(
+            "Read the user's account", READ, True, IDENTITY,
+            "Baseline identity: user id, username and avatar, without email."),
+        "email": _s(
+            "Read the user's email address", READ, True, IDENTITY,
+            "Turns a pseudonymous Discord identity into a contactable person."),
+        "guilds": _s(
+            "List the servers the user belongs to", READ, True, DATA_EGRESS,
+            "Server membership maps someone's employer, communities and "
+            "interests. Useful for targeting, harmless-looking on a consent screen."),
+        "guilds.join": _s(
+            "Add the user to servers", WRITE, True, EXTERNAL_COMMS,
+            "Places a real account into a server without a further prompt. "
+            "Whatever that server can see, it can now see about them."),
+        "bot": _s(
+            "Install a bot into a server", WRITE, False, EXTERNAL_COMMS,
+            "The bot then acts under its own permission set, which is granted "
+            "separately and is frequently far broader than this scope suggests."),
+        "webhook.incoming": _s(
+            "Create a webhook that posts into a channel", WRITE, False, EXTERNAL_COMMS,
+            "A standing, unauthenticated URL that posts messages to a channel. "
+            "It keeps working after the token is revoked and is rarely audited."),
+        "messages.read": _s(
+            "Read messages in channels the user can see", READ, True, DATA_EGRESS,
+            "Private conversation history, and a delivery route for prompt "
+            "injection from anyone who can post in those channels."),
+        "applications.commands": _s(
+            "Add slash commands to a server", WRITE, True, EXTERNAL_COMMS,
+            "Commands appear to members as a legitimate part of the server."),
+        "role_connections.write": _s(
+            "Update the user's connection metadata", WRITE, True, IDENTITY,
+            "Metadata other servers use to grant roles, so writing it can "
+            "change access the user has elsewhere."),
+    },
+
+    # Verified against docs.gitlab.com/security/tokens/access_token_scopes, Sept 2026.
+    "gitlab": {
+        "api": _s(
+            "Complete read and write API access", DESTRUCTIVE, False, INFRASTRUCTURE,
+            "The broadest GitLab token scope. Includes deleting projects, "
+            "rewriting CI configuration and reading every variable a pipeline "
+            "holds, which is where deployment credentials live."),
+        "read_api": _s(
+            "Read-only API access", READ, True, DATA_EGRESS,
+            "Reads source, issues and pipeline configuration across everything "
+            "the token's owner can reach."),
+        "read_repository": _s(
+            "Clone repositories", READ, True, DATA_EGRESS,
+            "Full source history. Secrets committed and later removed are "
+            "still present in the history this can read."),
+        "write_repository": _s(
+            "Push to repositories", WRITE, False, INFRASTRUCTURE,
+            "A push can alter CI configuration, and CI runs with credentials "
+            "the pusher may not otherwise hold. Force-push destroys history."),
+        "read_registry": _s(
+            "Pull container images", READ, True, DATA_EGRESS,
+            "Built images routinely contain baked-in configuration and, too "
+            "often, the credentials used at build time."),
+        "write_registry": _s(
+            "Push container images", WRITE, False, INFRASTRUCTURE,
+            "Overwriting a tag changes what deploys next, with no source "
+            "change to review."),
+        "sudo": _s(
+            "Act as any user on the instance", DESTRUCTIVE, False, IDENTITY,
+            "Impersonation. Every action is attributed to the impersonated "
+            "user, so the audit trail names the wrong person."),
+        "admin_mode": _s(
+            "Perform administrative API actions", DESTRUCTIVE, False, INFRASTRUCTURE,
+            "Instance administration on self-managed GitLab: users, groups, "
+            "settings and the audit configuration itself."),
+        "ai_features": _s(
+            "Use GitLab Duo APIs", WRITE, True, DATA_EGRESS,
+            "Sends source code to a model endpoint for completion and chat."),
+    },
+
     "generic": {},
 }
 

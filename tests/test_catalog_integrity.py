@@ -73,7 +73,8 @@ class Coverage(unittest.TestCase):
     def test_catalogue_covers_the_providers_the_site_claims(self):
         """The site sells breadth. If a provider is dropped, this fails first."""
         for provider in ("google", "github", "slack", "stripe", "aws",
-                         "atlassian", "microsoft", "sentry", "shopify"):
+                         "atlassian", "microsoft", "sentry", "shopify",
+                         "hubspot", "discord", "gitlab"):
             self.assertIn(provider, catalog.CATALOG)
             self.assertTrue(catalog.CATALOG[provider], "%s is empty" % provider)
 
