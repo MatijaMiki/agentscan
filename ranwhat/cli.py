@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import sys
 import time
 
@@ -136,17 +137,34 @@ OVERVIEW = """
   update   refresh the capability catalogue (needs a subscription)
 
   Start here:
-    ranwhat demo
-    ranwhat watch --days 30
+    %(cmd)s demo
+    %(cmd)s watch --days 30
 
   Everything runs locally. No account, and nothing is transmitted.
-  Full options: ranwhat --help
+  Full options: %(cmd)s --help
 """
+
+
+def invocation():
+    """How to spell a follow-up command so it works the way this one did.
+
+    `uvx ranwhat` runs from a throwaway environment that is not on PATH, so
+    telling that user to run `ranwhat demo` sends them to command-not-found.
+    Suggest whichever form actually resolves to the file being executed.
+    """
+    try:
+        running = os.path.realpath(sys.argv[0] or "")
+        on_path = shutil.which("ranwhat")
+        if on_path and os.path.realpath(on_path) == running:
+            return "ranwhat"
+    except OSError:
+        pass
+    return "uvx ranwhat"
 
 
 def _overview(parser):
     """Shown for a bare `ranwhat`, instead of an argparse usage error."""
-    sys.stdout.write(OVERVIEW.lstrip("\n"))
+    sys.stdout.write(OVERVIEW.lstrip("\n") % {"cmd": invocation()})
 
 
 def _update(args):

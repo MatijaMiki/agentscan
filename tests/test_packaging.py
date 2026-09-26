@@ -56,3 +56,49 @@ class Metadata(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class SuggestedCommands(unittest.TestCase):
+    """`uvx ranwhat` runs from a throwaway environment that is not on PATH.
+    Telling that user to run `ranwhat demo` sends them to command-not-found,
+    which is what the overview did on its first day."""
+
+    def test_suggests_uvx_when_the_bare_command_is_not_on_path(self):
+        import shutil as _shutil
+        from ranwhat import cli
+        real_which, real_argv = _shutil.which, sys.argv
+        try:
+            _shutil.which = lambda name: None          # nothing on PATH
+            sys.argv = ["/tmp/uv-cache/archive/bin/ranwhat"]
+            self.assertEqual(cli.invocation(), "uvx ranwhat")
+        finally:
+            _shutil.which, sys.argv = real_which, real_argv
+
+    def test_suggests_the_bare_command_when_it_resolves_to_us(self):
+        import shutil as _shutil
+        from ranwhat import cli
+        real_which, real_argv = _shutil.which, sys.argv
+        try:
+            _shutil.which = lambda name: __file__
+            sys.argv = [__file__]
+            self.assertEqual(cli.invocation(), "ranwhat")
+        finally:
+            _shutil.which, sys.argv = real_which, real_argv
+
+    def test_overview_never_prints_a_command_the_reader_cannot_run(self):
+        import io, contextlib, shutil as _shutil
+        from ranwhat import cli
+        real_which, real_argv = _shutil.which, sys.argv
+        try:
+            _shutil.which = lambda name: None
+            sys.argv = ["/tmp/uv-cache/archive/bin/ranwhat"]
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                cli._overview(None)
+            text = buf.getvalue()
+        finally:
+            _shutil.which, sys.argv = real_which, real_argv
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("ranwhat ") and not stripped.startswith("ranwhat  "):
+                self.fail("overview told a uvx user to run %r" % stripped)
