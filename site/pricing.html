@@ -80,18 +80,16 @@
       <div class="plan feature">
         <div class="tier">Team</div>
         <div class="price">$12<small> / agent / month</small></div>
-        <p class="who">When agents run on more than one machine, and nobody is going to check a report by hand every morning.</p>
+        <p class="who">When agents run on more than one machine and you want one place that already has the answer.</p>
         <ul>
           <li>Everything in Local</li>
-          <li><strong>A watchdog that runs continuously</strong>, rather than
-              waiting for someone to remember to run a scan</li>
-          <li>Slack or email the moment something crosses your threshold,
-              by severity</li>
-          <li>Action records collected across machines and CI</li>
-          <li>13-month retention</li>
+          <li><strong>One view across every machine and CI runner</strong>,
+              instead of a report per laptop</li>
+          <li>13-month retention, kept by us rather than by your backups</li>
+          <li>Slack or email by severity, deduplicated across agents</li>
           <li>Authority drift alerts when an agent's scopes widen</li>
           <li>Unlimited seats; you are billed on agents, not people</li>
-          <li>Collector is open source and runs in your network</li>
+          <li>Payloads hashed before they leave your network</li>
         </ul>
         <a class="act" href="/contact?about=team">Start a trial</a>
       </div>
@@ -99,13 +97,17 @@
       <div class="plan">
         <div class="tier">Evidence</div>
         <div class="price">Contact us<small> · annual</small></div>
-        <p class="who">When someone outside the company is going to ask what your agent did.</p>
+        <p class="who">When someone outside the company is going to ask what your agent did, and your own word is not the answer they want.</p>
         <ul>
           <li>Everything in Team</li>
-          <li>Hash-chained, tamper-evident records</li>
-          <li>Seven-year retention</li>
+          <li><strong>Hash-chained records you cannot alter either</strong>,
+              which is the only reason they are worth anything to a third
+              party</li>
+          <li>Seven-year retention as an obligation we carry, not a backup
+              policy you maintain</li>
           <li>Underwriter export pack for renewal or a claim</li>
-          <li>Public Agent Trust Page for your own sales cycles</li>
+          <li>A Trust Page your own prospects can load, attested by someone
+              other than you</li>
           <li>Named contact, annual billing</li>
         </ul>
         <a class="act quiet" href="/contact?about=evidence">Talk to us</a>
@@ -129,6 +131,13 @@
         deletions of build and temp directories: all true, none worth reading.
         Fixing that cut the report to four. Under per-finding pricing that fix
         would have cost us money, which is exactly why the meter isn't there.
+      </p>
+      <p style="color:var(--muted);font-size:15px">
+        Nothing is held back from the free tier to make the paid ones look
+        better. Every rule, every source and every report runs locally, and the
+        code is there to check. You are not paying for features withheld from a
+        binary; you are paying because retention, correlation and a record you
+        cannot edit yourself all need someone else to run them.
       </p>
       <div class="rows" style="margin-top:26px">
         <div class="row"><span class="k">Metered</span>
@@ -166,18 +175,19 @@
              rather than pretending the table scales.</p>
         </div>
         <div class="cell">
-          <h3>Can we self-host the paid parts?</h3>
-          <p>Yes, on Evidence. The whole design assumes the sensitive half runs
-             on your infrastructure, so hosting the rest there too is a
-             deployment choice, not a rewrite.</p>
+          <h3>Can we self-host the evidence store?</h3>
+          <p>No, and that is the point rather than a limitation. A hash chain
+             you control is one you can rewrite, so an underwriter should
+             ignore it. The records are worth something precisely because we
+             hold them and you cannot quietly change them. The collector that
+             runs in your network is yours; the chain is deliberately not.</p>
         </div>
       </div>
       <div class="note" style="margin-top:22px">
         <h3>Honest status</h3>
         <p>Local ships today and is what the GitHub repository contains. Team
-           and Evidence are being built. The continuous watchdog, the
-           cross-machine collector and the hash-chained records are not
-           written yet; everything listed under Local is, and you can read it
+           and Evidence are being built. The cross-machine collector, the
+           retention store and the hash-chained records are not written yet; everything listed under Local is, and you can read it
            on GitHub today. These prices are what the paid tiers will launch
            at. If you want either now, you'd be an early customer shaping
            them, and you should expect to be treated like one.</p>
