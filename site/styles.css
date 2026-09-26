@@ -387,9 +387,14 @@ footer{border-top:1px solid var(--rule);background:var(--surface)}
 .plan .who{font-size:14px;color:var(--muted);margin:10px 0 22px;min-height:44px}
 .plan ul{list-style:none;margin:0 0 24px;padding:0;display:flex;
   flex-direction:column;gap:10px;font-size:14px;color:var(--ink-2);flex:1}
-.plan li{display:flex;gap:9px;align-items:flex-start;line-height:1.5}
-.plan li::before{content:"—";color:var(--faint);flex:none;
-  font-family:"IBM Plex Mono",Menlo,monospace;font-size:12px;line-height:1.7}
+/* The dash used to be a flex sibling, which made any <strong> inside a list
+   item a flex item too: bold text in one column, the rest of the sentence in
+   another. Absolute positioning keeps the item a normal block, so inline
+   markup flows the way it reads. */
+.plan li{position:relative;padding-left:19px;line-height:1.5}
+.plan li::before{content:"\2014";position:absolute;left:0;top:0;
+  color:var(--faint);font-family:"IBM Plex Mono",Menlo,monospace;
+  font-size:12px;line-height:1.75}
 .plan .act,.form .act{font-family:"IBM Plex Mono",Menlo,monospace;font-size:12.5px;
   border:1px solid var(--ink);padding:10px 14px;text-align:center;
   text-decoration:none;display:block;color:var(--ink);background:transparent}
