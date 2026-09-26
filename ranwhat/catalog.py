@@ -188,6 +188,150 @@ CATALOG = {
             "Invoke functions", WRITE, True, INFRASTRUCTURE,
             "Arbitrary invocation of deployed code."),
     },
+    # Scope strings verified against developer.atlassian.com, September 2026.
+    "atlassian": {
+        "read:jira-user": _s(
+            "Read user profiles and groups", READ, True, IDENTITY,
+            "Enumerates the org chart: who exists, which teams they are in, "
+            "who reports where. Useful reconnaissance for a social attack."),
+        "read:jira-work": _s(
+            "Read all issues, comments and attachments", READ, True, DATA_EGRESS,
+            "Issue trackers hold incident write-ups, customer names and "
+            "credentials pasted into comments by people in a hurry."),
+        "write:jira-work": _s(
+            "Create and edit issues, comments and worklogs", WRITE, True, DATA_EGRESS,
+            "Comments notify watchers by email, so a write here reaches people "
+            "outside the tool."),
+        "delete:issue:jira": _s(
+            "Delete issues", DESTRUCTIVE, False, DATA_EGRESS,
+            "Deletes the ticket and its history. If the agent's own work was "
+            "tracked there, this removes the record of what it was asked to do."),
+        "delete:comment:jira": _s(
+            "Delete comments", DESTRUCTIVE, False, DATA_EGRESS,
+            "Comment deletion is how an actor removes the discussion that "
+            "would explain a change, while leaving the change in place."),
+        "delete:project:jira": _s(
+            "Delete entire projects", DESTRUCTIVE, False, DATA_EGRESS,
+            "Removes every issue, attachment and worklog in a project at once. "
+            "Recovery depends on a backup nobody has tested."),
+        "manage:jira-project": _s(
+            "Administer projects, roles and permissions", DESTRUCTIVE, False, IDENTITY,
+            "Can grant itself or others access to projects it could not "
+            "previously read. Permission changes are rarely alerted on."),
+        "manage:jira-configuration": _s(
+            "Administer site-wide Jira configuration", DESTRUCTIVE, False, INFRASTRUCTURE,
+            "Site-wide authority including workflows and schemes. The broadest "
+            "Jira scope short of full site admin."),
+        "delete:webhook:jira": _s(
+            "Delete webhooks", DESTRUCTIVE, False, INFRASTRUCTURE,
+            "Webhooks are often what feeds an external audit trail. Deleting "
+            "one silences the downstream record without touching Jira itself."),
+    },
+
+    # Verified against learn.microsoft.com/graph/permissions-reference, Sept 2026.
+    "microsoft": {
+        "Mail.Read": _s(
+            "Read the user's mail", READ, True, DATA_EGRESS,
+            "Full mailbox read. Every message is a possible prompt-injection "
+            "carrier and every attachment is exfiltratable."),
+        "Mail.Send": _s(
+            "Send mail as the user", WRITE, False, EXTERNAL_COMMS,
+            "Sends as a real person to any external party. Sent mail cannot "
+            "be recalled once it leaves the tenant."),
+        "Mail.ReadWrite": _s(
+            "Read, write and delete the user's mail", DESTRUCTIVE, False, DATA_EGRESS,
+            "Superset of read and send that can also delete. An agent can "
+            "remove the message that shows what it was told to do."),
+        "Calendars.ReadWrite": _s(
+            "Full access to the user's calendars", WRITE, True, EXTERNAL_COMMS,
+            "Creating an event emails every attendee, including external ones, "
+            "so a calendar write is an outbound message."),
+        "Files.ReadWrite.All": _s(
+            "Read and write all files the user can access", DESTRUCTIVE, False, DATA_EGRESS,
+            "Covers OneDrive and every SharePoint site the user can reach. "
+            "Includes sharing, which is an egress path most DLP misses."),
+        "Sites.FullControl.All": _s(
+            "Full control of all SharePoint sites", DESTRUCTIVE, False, DATA_EGRESS,
+            "Total authority over every site collection in the tenant, "
+            "including permissions and retention settings."),
+        "Directory.ReadWrite.All": _s(
+            "Read and write directory data", DESTRUCTIVE, False, IDENTITY,
+            "Entra ID write. Can create accounts, change group membership and "
+            "alter who has access to everything else in the tenant."),
+        "User.Read": _s(
+            "Sign in and read the user's profile", READ, True, IDENTITY,
+            "The baseline sign-in scope. Low authority on its own."),
+    },
+
+    # Verified against docs.sentry.io/api/permissions, September 2026.
+    "sentry": {
+        "org:read": _s(
+            "Read organisation settings and membership", READ, True, IDENTITY,
+            "Reveals projects, teams and who belongs to them."),
+        "org:admin": _s(
+            "Administer and delete the organisation", DESTRUCTIVE, False, INFRASTRUCTURE,
+            "The broadest Sentry authority. Includes deleting the organisation "
+            "and every project and event inside it."),
+        "project:read": _s(
+            "Read project settings", READ, True, DATA_EGRESS,
+            "Includes DSNs and configuration that describe your deployment."),
+        "project:write": _s(
+            "Modify project settings", WRITE, True, INFRASTRUCTURE,
+            "Can change alert rules and data-scrubbing settings, so it can turn "
+            "off the filtering that keeps secrets out of captured events."),
+        "project:admin": _s(
+            "Delete projects", DESTRUCTIVE, False, INFRASTRUCTURE,
+            "Deletes a project and all its history. This is deletion of the "
+            "observability record itself."),
+        "event:read": _s(
+            "Read captured events", READ, True, DATA_EGRESS,
+            "Error events routinely contain request bodies, headers and tokens "
+            "that were live at the moment of the exception."),
+        "event:admin": _s(
+            "Delete issues and their events", DESTRUCTIVE, False, DATA_EGRESS,
+            "Events are immutable, so this deletes whole issues. An agent that "
+            "caused errors can erase the trace of having caused them."),
+        "member:admin": _s(
+            "Add, change and remove members", DESTRUCTIVE, False, IDENTITY,
+            "Can grant access to whoever it likes, including itself."),
+    },
+
+    # Verified against shopify.dev/docs/api/usage/access-scopes, September 2026.
+    "shopify": {
+        "read_orders": _s(
+            "Read orders", READ, True, DATA_EGRESS,
+            "Orders carry names, addresses, contact details and what people "
+            "bought. A customer-data breach in one call."),
+        "write_orders": _s(
+            "Create and modify orders", FINANCIAL, False, MONETARY,
+            "Editing an order moves money and changes what gets shipped. "
+            "Refunds and cancellations are not reversible by re-editing."),
+        "read_all_orders": _s(
+            "Read orders beyond the 60-day window", READ, True, DATA_EGRESS,
+            "Shopify gates this behind approval because it exposes the full "
+            "historical customer record rather than recent activity."),
+        "write_draft_orders": _s(
+            "Create and modify draft orders", FINANCIAL, True, MONETARY,
+            "Draft orders can be turned into invoices emailed to customers, so "
+            "this both creates a financial document and sends it outward."),
+        "read_customers": _s(
+            "Read customer records", READ, True, DATA_EGRESS,
+            "The customer list is usually the most valuable personal data a "
+            "shop holds, and the most regulated."),
+        "write_customers": _s(
+            "Create and modify customer records", WRITE, False, IDENTITY,
+            "Can alter the email address an order confirmation is sent to, "
+            "which redirects both goods and correspondence."),
+        "read_customer_payment_methods": _s(
+            "Read stored customer payment methods", FINANCIAL, True, MONETARY,
+            "Approval-gated by Shopify. Reveals which payment instruments a "
+            "customer has on file."),
+        "write_products": _s(
+            "Create and modify products", WRITE, True, MONETARY,
+            "Includes price. A wrong price is a real loss for as long as it is "
+            "live, and the orders taken at it are already binding."),
+    },
+
     "generic": {},
 }
 
