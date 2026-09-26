@@ -20,8 +20,8 @@ const TO = "ranwhatcom@gmail.com";
 const FROM = "form@ranwhat.com";
 
 const SUBJECTS = {
+  plus: "ranwhat Plus",
   team: "ranwhat Team",
-  evidence: "ranwhat Evidence",
   bug: "ranwhat: something the tool got wrong",
   other: "ranwhat enquiry",
 };
