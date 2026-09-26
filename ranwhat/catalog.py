@@ -223,6 +223,43 @@ def _infer(provider, scope):
     return entry
 
 
+_FEED_CACHE = []   # one slot; [] means "not looked yet", [None] means "no feed"
+
+
+def _feed_catalogue():
+    """The subscribed catalogue if one is cached, else None.
+
+    Read once per process and never over the network: a scan must not depend
+    on a server being reachable, and must not slow down because one is not.
+    """
+    if not _FEED_CACHE:
+        try:
+            from . import feed
+            doc = feed.load()
+            _FEED_CACHE.append(doc.get("catalogue") if doc else None)
+        except Exception:
+            _FEED_CACHE.append(None)
+    return _FEED_CACHE[0]
+
+
+def reset_feed_cache():
+    """Drop the memoised feed. For tests, and after `ranwhat update`."""
+    del _FEED_CACHE[:]
+
+
+def providers(provider):
+    """Bundled entries for a provider, overlaid with any feed entries.
+
+    The feed wins per scope rather than per provider, so a feed that has not
+    caught up with a locally known scope cannot remove it.
+    """
+    merged = dict(CATALOG.get(provider, {}))
+    fed = _feed_catalogue()
+    if fed:
+        merged.update(fed.get(provider, {}))
+    return merged
+
+
 def lookup(provider, scope):
     """Resolve a granted scope to its capability entry.
 
@@ -231,8 +268,12 @@ def lookup(provider, scope):
     NEVER widened to a broad wildcard entry -- being granted s3:ListBucket
     is not the same as being granted s3:*, and scoring it that way would
     make the whole report untrustworthy.
+
+    A subscribed feed entry overrides the bundled one for the same scope, and
+    adds scopes the bundle never had. Everything below is unchanged by that:
+    the feed supplies data, not different rules.
     """
-    prov = CATALOG.get(provider, {})
+    prov = providers(provider)
     if scope in prov:
         entry = dict(prov[scope])
         entry["known"] = True

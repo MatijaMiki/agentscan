@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import sys
+import time
 
 from .score import scan as _run_scan, ProfileError
 from .report import render
@@ -20,6 +21,8 @@ from . import introspect
 from . import usage as usage_mod
 from . import watch as watch_mod
 from . import clean as clean_mod
+from . import feed as feed_mod
+from . import catalog as catalog_mod
 
 
 def _token(args, provider):
@@ -130,6 +133,7 @@ OVERVIEW = """
   clean    credentials sitting in plaintext in agent transcripts
   scan     the authority a set of credentials carries
   demo     see the output without setting anything up
+  update   refresh the capability catalogue (needs a subscription)
 
   Start here:
     ranwhat demo
@@ -145,11 +149,63 @@ def _overview(parser):
     sys.stdout.write(OVERVIEW.lstrip("\n"))
 
 
+def _update(args):
+    """Fetch the subscribed catalogue, or report what is cached.
+
+    Deliberately the only command that touches the network, and it sends a
+    token and nothing else.
+    """
+    if args.status:
+        st = feed_mod.status()
+        if not st["active"]:
+            sys.stdout.write(
+                "  No feed cached. The bundled catalogue is in use.\n"
+                "  A subscription adds providers as they ship new scopes:\n"
+                "  https://ranwhat.com/pricing\n")
+            return 0
+        when = time.strftime("%Y-%m-%d %H:%M", time.localtime(st["fetched_at"]))
+        sys.stdout.write(
+            "  Feed %s\n  %d providers, %d scopes\n  fetched %s\n"
+            % (st.get("version") or "?", st["providers"], st["scopes"], when))
+        return 0
+
+    token = args.token or feed_mod.read_token()
+    if not token:
+        sys.stderr.write(
+            "  No token. Set RANWHAT_TOKEN, or pass --token with --save-token\n"
+            "  to store it at ~/.ranwhat/token.\n\n"
+            "  Everything else works without one; the feed only keeps the\n"
+            "  capability catalogue current. https://ranwhat.com/pricing\n")
+        return 1
+    if args.token:
+        sys.stderr.write(
+            "  Warning: a token in the command line is readable by every user\n"
+            "  on this machine through the process table, and is written to\n"
+            "  your shell history. Prefer RANWHAT_TOKEN.\n\n")
+
+    try:
+        doc = feed_mod.fetch(token)
+    except feed_mod.FeedError as exc:
+        sys.stderr.write("  %s\n" % exc)
+        return 1
+
+    feed_mod.save(doc)
+    if args.save_token:
+        path = feed_mod.save_token(token)
+        sys.stdout.write("  Token saved to %s (0600)\n" % path)
+    catalog_mod.reset_feed_cache()
+
+    cat = doc.get("catalogue", {})
+    sys.stdout.write(
+        "  Updated to feed %s\n  %d providers, %d scopes\n"
+        % (doc.get("version") or "?", len(cat), sum(len(v) for v in cat.values())))
+    return 0
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="ranwhat",
                                 description="Score an AI agent's authority, observability and reversibility.")
     p.add_argument("command", nargs="?",
-                   choices=["demo", "scan", "live", "watch", "clean"])
+                   choices=["demo", "scan", "live", "watch", "clean", "update"])
     p.add_argument("profile", nargs="?", help="path to a profile JSON")
     p.add_argument("--json", action="store_true", help="emit raw JSON")
     p.add_argument("--html", metavar="PATH", help="also write an HTML report")
@@ -183,11 +239,25 @@ def main(argv=None):
     p.add_argument("--no-interactive", action="store_true",
                    help="clean: report and exit instead of opening the review "
                         "session")
+    p.add_argument("--token", metavar="TOKEN",
+                   help="update: subscription token. Prefer RANWHAT_TOKEN in "
+                        "the environment, or run update once to save it: a "
+                        "value passed here is visible to every user on this "
+                        "machine via ps, and lands in your shell history.")
+    p.add_argument("--save-token", action="store_true",
+                   help="update: write the token to ~/.ranwhat/token (0600) "
+                        "so later runs need no flag")
+    p.add_argument("--status", action="store_true",
+                   help="update: report the cached feed and exit without "
+                        "touching the network")
     args = p.parse_args(argv)
 
     if args.command is None:
         _overview(p)
         return 0
+
+    if args.command == "update":
+        return _update(args)
 
 
     if args.days is not None and args.days < 1:
